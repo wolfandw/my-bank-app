@@ -1,0 +1,60 @@
+services:
+
+  redis:
+    image: redis:7.4.2-bookworm
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.1
+    container_name: keycloak
+    command: start-dev --import-realm --http-port=8082
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    volumes:
+      - .:/opt/keycloak/data/import
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://keycloak:8082/health/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payment:
+    container_name: payment
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    environment:
+      - KEYCLOAK_HOST=keycloak
+      - KEYCLOAK_PORT=8082
+    depends_on:
+      - keycloak
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  showcase:
+    container_name: showcase
+    build:
+      context: ./showcase
+      dockerfile: Dockerfile
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KEYCLOAK_HOST=keycloak
+      - KEYCLOAK_PORT=8082
+      - KEYCLOAK_SECRET=5xgpkHMU7yKb3FvB6Mu11wG152WpAIt6
+      - PAYMENT_HOST=payment
+      - PAYMENT_PORT=8081
+    depends_on:
+      - redis
+      - keycloak
+      - payment
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
