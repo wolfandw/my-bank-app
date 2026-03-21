@@ -2,7 +2,6 @@ package io.github.wolfandw.frontui.service.impl;
 
 import io.github.wolfandw.frontui.dto.AccountPageDto;
 import io.github.wolfandw.frontui.dto.CashAction;
-import io.github.wolfandw.frontui.service.AccountsService;
 import io.github.wolfandw.frontui.service.CashService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +27,7 @@ public class CashServiceImpl implements CashService {
      * @param gatewayBaseUrl URL шлюза
      */
     public CashServiceImpl(WebClient gatewayWebClient,
-                               @Value("${bank.gateway.base-url}") String gatewayBaseUrl) {
+                               @Value("${gateway.url}") String gatewayBaseUrl) {
         this.gatewayWebClient = gatewayWebClient;
         this.gatewayBaseUrl = gatewayBaseUrl;
     }

@@ -12,7 +12,7 @@ public class ApplicationController {
     /**
      * Перенаправляет запрос на страницу аккаунта.
      */
-    @GetMapping
+    @GetMapping("/")
     public Mono<String> redirectToAccount() {
         return  Mono.just("redirect:/account");
     }

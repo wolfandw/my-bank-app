@@ -26,7 +26,7 @@ public class TransferServiceImpl implements TransferService {
      * @param gatewayWebClient веб-клиент
      * @param gatewayBaseUrl URL шлюза
      */
-    public TransferServiceImpl(WebClient gatewayWebClient, @Value("${bank.gateway.base-url}") String gatewayBaseUrl) {
+    public TransferServiceImpl(WebClient gatewayWebClient, @Value("${gateway.url}") String gatewayBaseUrl) {
         this.gatewayWebClient = gatewayWebClient;
         this.gatewayBaseUrl = gatewayBaseUrl;
     }

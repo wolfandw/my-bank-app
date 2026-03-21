@@ -1,8 +1,7 @@
-package io.github.wolfandw.frontui.service.impl;
+package io.github.wolfandw.accounts.service.impl;
 
-import io.github.wolfandw.frontui.dto.AccountEditDto;
-import io.github.wolfandw.frontui.dto.AccountPageDto;
-import io.github.wolfandw.frontui.service.AccountsService;
+import io.github.wolfandw.accounts.dto.AccountPageDto;
+import io.github.wolfandw.accounts.service.AccountsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,9 @@ import java.time.LocalDate;
 public class AccountsServiceImpl implements AccountsService {
     private final WebClient gatewayWebClient;
     private final String gatewayBaseUrl;
-    private final AccountStub accountStub;
+
+    @Autowired
+    private AccountStub accountStub;
 
     /**
      * Создает сервис.
@@ -27,28 +28,18 @@ public class AccountsServiceImpl implements AccountsService {
      * @param gatewayBaseUrl URL шлюза
      */
     public AccountsServiceImpl(WebClient gatewayWebClient,
-                               @Value("${gateway.url}") String gatewayBaseUrl, AccountStub accountStub) {
+                               @Value("${bank.gateway.base-url}") String gatewayBaseUrl) {
         this.gatewayWebClient = gatewayWebClient;
         this.gatewayBaseUrl = gatewayBaseUrl;
-        this.accountStub = accountStub;
     }
 
     @Override
     public Mono<AccountPageDto> getAccount() {
-        return gatewayWebClient.get()
-                .uri(gatewayBaseUrl + "/account")
-                .retrieve()
-                .bodyToMono(AccountPageDto.class)
-                .switchIfEmpty(Mono.error(new RuntimeException("User data not found")));
+        return Mono.just(accountStub.fillModel(null, null));
     }
 
     @Override
     public Mono<AccountPageDto> editAccount(String name, LocalDate birthdate) {
-        AccountEditDto updateDto = new AccountEditDto(name, birthdate);
-        return gatewayWebClient.patch()
-                .uri(gatewayBaseUrl + "/account")
-                .bodyValue(updateDto)
-                .retrieve()
-                .bodyToMono(AccountPageDto.class);
+        return Mono.just(accountStub.editAccount(name, birthdate));
     }
 }

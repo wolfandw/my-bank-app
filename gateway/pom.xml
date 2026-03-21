@@ -15,6 +15,12 @@
     <description>gateway</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+            <version>5.0.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

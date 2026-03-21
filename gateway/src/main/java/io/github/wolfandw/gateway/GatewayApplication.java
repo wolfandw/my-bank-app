@@ -1,19 +1,19 @@
-package io.github.wolfandw.frontui;
+package io.github.wolfandw.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Проложение Front UI.
+ * Проложение Gateway.
  */
 @SpringBootApplication
-public class FrontUIApplication {
+public class GatewayApplication {
     /**
 	 * Запускает приложение.
 	 *
      * @param args аргументы
      */
 	public static void main(String[] args) {
-		SpringApplication.run(FrontUIApplication.class, args);
+		SpringApplication.run(GatewayApplication.class, args);
 	}
 }

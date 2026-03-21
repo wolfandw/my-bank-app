@@ -1,19 +1,19 @@
-package io.github.wolfandw.frontui;
+package io.github.wolfandw.accounts;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Проложение Front UI.
+ * Проложение аккаунтов.
  */
 @SpringBootApplication
-public class FrontUIApplication {
+public class AccountsApplication {
     /**
 	 * Запускает приложение.
 	 *
      * @param args аргументы
      */
 	public static void main(String[] args) {
-		SpringApplication.run(FrontUIApplication.class, args);
+		SpringApplication.run(AccountsApplication.class, args);
 	}
 }
