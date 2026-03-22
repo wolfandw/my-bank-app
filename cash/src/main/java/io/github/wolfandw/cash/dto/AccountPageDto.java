@@ -7,7 +7,7 @@ import java.util.List;
  */
 public class AccountPageDto {
     private String name;
-    private String birthDate;
+    private String birthdate;
     private int sum;
     private List<AccountDto> accounts;
     private List<String> errors;
@@ -25,10 +25,10 @@ public class AccountPageDto {
     /**
      * Устанавливает дату рождения.
      *
-     * @param birthDate дата рождения
+     * @param birthdate дата рождения
      */
-    public void setBirthDate(String birthDate) {
-        this.birthDate = birthDate;
+    public void setBirthdate(String birthdate) {
+        this.birthdate = birthdate;
     }
 
     /**
@@ -81,8 +81,8 @@ public class AccountPageDto {
      *
      * @return дата рождения
      */
-    public String getBirthDate() {
-        return birthDate;
+    public String getBirthdate() {
+        return birthdate;
     }
 
     /**

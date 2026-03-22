@@ -39,7 +39,7 @@ public class CashServiceImpl implements CashService {
 
     @Override
     public Mono<AccountPageDto> editCash(BigDecimal value, CashAction action) {
-        LOG.error("Обработка запроса на изменения наличных в Аккаунт-сервисе");
+        LOG.debug("Accounts. Обработка запроса на изменение наличных");
         return Mono.just(accountStub.editCash(value.intValue(), action));
     }
 }

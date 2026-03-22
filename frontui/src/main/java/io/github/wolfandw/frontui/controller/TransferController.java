@@ -1,8 +1,12 @@
 package io.github.wolfandw.frontui.controller;
 
 import io.github.wolfandw.frontui.dto.AccountPageDto;
+import io.github.wolfandw.frontui.dto.TransfetEditRequestDto;
 import io.github.wolfandw.frontui.service.TransferService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.result.view.Rendering;
@@ -13,8 +17,7 @@ import reactor.core.publisher.Mono;
  */
 @Controller
 public class TransferController {
-    private static final String TEMPLATE_MAIN = "main";
-    private static final String ATTRIBUTE_ACCOUNT_PAGE = "accountPage";
+    private static final Logger LOG = LoggerFactory.getLogger(TransferController.class);
 
     private final TransferService transferService;
 
@@ -30,16 +33,13 @@ public class TransferController {
     /**
      * Осуществляет перевод получателю.
      *
-     * @param value сумма списания
-     * @param login логин пользователя получателя
+     * @param request сумма списания и логин пользователя получателя
      * @return шаблон и модель аккаунта текущего пользователя
      */
     @PostMapping("/transfer")
-    public Mono<Rendering> transfer(@RequestParam("value") int value, @RequestParam("login") String login) {
-        Mono<AccountPageDto> accountPageDtoMono = transferService.transfer(value, login);
-        return Mono.just(Rendering.view(TEMPLATE_MAIN)
-                .modelAttribute(ATTRIBUTE_ACCOUNT_PAGE, accountPageDtoMono)
-                .build()
-        );
+    public Mono<String> transfer(@ModelAttribute TransfetEditRequestDto request) {
+        LOG.debug("Пользователь -> Front UI. Получен запрос на перевод наличных");
+        Mono<AccountPageDto> accountPageDtoMono = transferService.transfer(request.getValue(), request.getLogin());
+        return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));
     }
 }

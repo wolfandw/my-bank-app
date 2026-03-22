@@ -1,7 +1,10 @@
 package io.github.wolfandw.accounts.service.impl;
 
+import io.github.wolfandw.accounts.controller.AccountsController;
 import io.github.wolfandw.accounts.dto.AccountPageDto;
 import io.github.wolfandw.accounts.service.AccountsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,7 @@ import java.time.LocalDate;
  */
 @Service
 public class AccountsServiceImpl implements AccountsService {
+    private static final Logger LOG = LoggerFactory.getLogger(AccountsServiceImpl.class);
     private final WebClient gatewayWebClient;
     private final String gatewayBaseUrl;
 
@@ -39,7 +43,8 @@ public class AccountsServiceImpl implements AccountsService {
     }
 
     @Override
-    public Mono<AccountPageDto> editAccount(String name, LocalDate birthDate) {
-        return Mono.just(accountStub.editAccount(name, birthDate));
+    public Mono<AccountPageDto> editAccount(String name, LocalDate birthdate) {
+        LOG.debug("Accounts. Обработка запроса на изменение персональных данных");
+        return Mono.just(accountStub.editAccount(name, birthdate));
     }
 }

@@ -1,7 +1,7 @@
 package io.github.wolfandw.transfer.service.impl;
 
-import io.github.wolfandw.frontui.dto.AccountPageDto;
-import io.github.wolfandw.frontui.service.TransferService;
+import io.github.wolfandw.transfer.dto.AccountPageDto;
+import io.github.wolfandw.transfer.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,14 +29,14 @@ public class TransferServiceImpl implements TransferService {
      * @param gatewayWebClient веб-клиент
      * @param gatewayBaseUrl URL шлюза
      */
-    public TransferServiceImpl(WebClient gatewayWebClient, @Value("${gateway.url}") String gatewayBaseUrl) {
+    public TransferServiceImpl(WebClient gatewayWebClient, @Value("${bank.accounts.base-url}") String gatewayBaseUrl) {
         this.gatewayWebClient = gatewayWebClient;
         this.gatewayBaseUrl = gatewayBaseUrl;
     }
 
     @Override
     public Mono<AccountPageDto> transfer(BigDecimal value, String login) {
-        LOG.debug("Front UI -> Gateway. Отправка запроса на перевод наличных");
+        LOG.debug("Transfer -> Accounts. Отправка запроса на перевод наличных");
         return gatewayWebClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, value, login))
                 .retrieve()
@@ -47,8 +47,8 @@ public class TransferServiceImpl implements TransferService {
         return uriBuilder
                 .scheme("http")
                 .host("localhost")
-                .port("8081")
-                .path("/transfer")
+                .port("8083")
+                .path("/api/transfer")
                 .queryParam("value", value)
                 .queryParam("login", login)
                 .build();

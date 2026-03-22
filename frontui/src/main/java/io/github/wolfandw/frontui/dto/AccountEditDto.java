@@ -7,16 +7,16 @@ import java.time.LocalDate;
  */
 public class AccountEditDto {
     private String name;
-    private LocalDate birthDate;
+    private LocalDate birthdate;
 
     /**
      * Создает DTO-представление для обновления данных аккаунта.
      *
      * @param name имя
-     * @param birthDate дата рождения
+     * @param birthdate дата рождения
      */
-    public AccountEditDto(String name, LocalDate birthDate) {
+    public AccountEditDto(String name, LocalDate birthdate) {
         this.name = name;
-        this.birthDate = birthDate;
+        this.birthdate = birthdate;
     }
 }

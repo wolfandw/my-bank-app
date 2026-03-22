@@ -3,6 +3,8 @@ package io.github.wolfandw.frontui.service;
 import io.github.wolfandw.frontui.dto.AccountPageDto;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 /**
  * Сервис переводов.
  */
@@ -14,5 +16,5 @@ public interface TransferService {
      * @param login получатель перевода
      * @return DTO-представление аккаунта
      */
-    Mono<AccountPageDto> transfer(int value, String login);
+    Mono<AccountPageDto> transfer(BigDecimal value, String login);
 }

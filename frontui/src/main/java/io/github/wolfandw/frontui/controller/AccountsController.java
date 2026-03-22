@@ -54,7 +54,8 @@ public class AccountsController {
      */
     @PostMapping("/account")
     public Mono<String> editAccount(@ModelAttribute AccountEditRequestDto request) {
-        Mono<AccountPageDto> accountPageDtoMono = accountsService.editAccount(request.getName(), request.getBirthDate());
+        LOG.debug("Пользователь -> Front UI. Получен запрос на изменение персональных данных");
+        Mono<AccountPageDto> accountPageDtoMono = accountsService.editAccount(request.getName(), request.getBirthdate());
         return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));
     }
 }

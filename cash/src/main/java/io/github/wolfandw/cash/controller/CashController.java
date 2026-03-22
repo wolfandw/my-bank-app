@@ -35,7 +35,7 @@ public class CashController {
      */
     @PostMapping("/cash")
     public Mono<AccountPageDto> editCash(@ModelAttribute CashEditRequestDto request) {
-        LOG.error("Прием запроса на изменение наличных из шлюза в Кеш-сервис");
+        LOG.debug("Gateway -> Cash. Получен запрос на изменение наличных");
         return cashService.editCash(request.getValue(), request.getAction());
     }
 }

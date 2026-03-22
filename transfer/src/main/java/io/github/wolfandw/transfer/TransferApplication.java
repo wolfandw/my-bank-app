@@ -4,16 +4,16 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Проложение Front UI.
+ * Проложение Transfer.
  */
 @SpringBootApplication
-public class FrontUIApplication {
+public class TransferApplication {
     /**
 	 * Запускает приложение.
 	 *
      * @param args аргументы
      */
 	public static void main(String[] args) {
-		SpringApplication.run(FrontUIApplication.class, args);
+		SpringApplication.run(TransferApplication.class, args);
 	}
 }

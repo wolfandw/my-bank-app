@@ -1,19 +1,20 @@
 package io.github.wolfandw.accounts.controller;
 
-import io.github.wolfandw.transfer.dto.AccountPageDto;
-import io.github.wolfandw.transfer.dto.TransfetEditRequestDto;
-import io.github.wolfandw.transfer.service.TransferService;
+import io.github.wolfandw.accounts.dto.AccountPageDto;
+import io.github.wolfandw.accounts.dto.TransfetEditRequestDto;
+import io.github.wolfandw.accounts.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
  * Контроллер для работы с переводами.
  */
-@Controller
+@RestController
 public class TransferController {
     private static final Logger LOG = LoggerFactory.getLogger(TransferController.class);
 
@@ -34,9 +35,9 @@ public class TransferController {
      * @param request сумма списания и логин пользователя получателя
      * @return DTO-модель аккаунта текущего пользователя
      */
-    @PostMapping("/transfer")
+    @PostMapping("/api/transfer")
     public Mono<AccountPageDto> transfer(@ModelAttribute TransfetEditRequestDto request) {
-        LOG.debug("Gateway -> Transfer. Получен запрос на перевод наличных");
+        LOG.debug("Transfer -> Accounts. Получен запрос на перевод наличных");
         return transferService.transfer(request.getValue(), request.getLogin());
     }
 }

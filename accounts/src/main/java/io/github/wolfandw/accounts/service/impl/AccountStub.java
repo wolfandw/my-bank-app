@@ -74,7 +74,7 @@ public class AccountStub {
     public AccountPageDto fillModel(List<String> errors, @Nullable String info) {
         AccountPageDto accountPageDto = new AccountPageDto();
         accountPageDto.setName(name);
-        accountPageDto.setBirthDate(birthdate.format(DateTimeFormatter.ISO_DATE));
+        accountPageDto.setBirthdate(birthdate.format(DateTimeFormatter.ISO_DATE));
         accountPageDto.setSum(sum);
         accountPageDto.setAccounts(accounts);
         accountPageDto.setErrors(errors);
@@ -97,7 +97,7 @@ public class AccountStub {
         }
     }
 
-    public AccountPageDto transfer(@RequestParam("value") int value, @RequestParam("login") String login) {
+    public AccountPageDto transfer(int value, String login) {
         if (sum < value) {
             return fillModel(List.of("Недостаточно средств на счету"), null);
         } else {

@@ -37,7 +37,7 @@ public class CashServiceImpl implements CashService {
 
     @Override
     public Mono<AccountPageDto> editCash(BigDecimal value, CashAction action) {
-        LOG.error("Отправка запроса на изменение наличных из Front UI в шлюз");
+        LOG.debug("Front UI -> Gateway. Отправка запроса на изменение наличных");
         return gatewayWebClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, value, action))
                 .retrieve()

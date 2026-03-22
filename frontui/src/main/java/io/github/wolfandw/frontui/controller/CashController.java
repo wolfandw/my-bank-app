@@ -36,7 +36,7 @@ public class CashController {
      */
     @PostMapping("/cash")
     public Mono<String> editCash(@ModelAttribute CashEditRequestDto request) {
-        LOG.error("Запрос изменения наличных в Front UI");
+        LOG.debug("Пользователь -> Front UI. Получен запрос на изменение наличных");
         Mono<AccountPageDto> accountPageDtoMono = cashService.editCash(request.getValue(), request.getAction());
         return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));
     }
