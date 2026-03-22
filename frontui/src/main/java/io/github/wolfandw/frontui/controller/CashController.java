@@ -1,7 +1,7 @@
 package io.github.wolfandw.frontui.controller;
 
-import io.github.wolfandw.frontui.dto.AccountPageDto;
-import io.github.wolfandw.frontui.dto.CashEditRequestDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.CashEditRequestDto;
 import io.github.wolfandw.frontui.service.CashService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ public class CashController {
      */
     @PostMapping("/cash")
     public Mono<String> editCash(@ModelAttribute CashEditRequestDto request) {
-        LOG.debug("Пользователь -> Front UI. Получен запрос на изменение наличных");
+        LOG.info("Пользователь -> Front UI. Получен запрос на изменение наличных");
         Mono<AccountPageDto> accountPageDtoMono = cashService.editCash(request.getValue(), request.getAction());
         return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));
     }

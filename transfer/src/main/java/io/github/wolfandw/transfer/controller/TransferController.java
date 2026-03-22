@@ -1,11 +1,10 @@
 package io.github.wolfandw.transfer.controller;
 
-import io.github.wolfandw.transfer.dto.AccountPageDto;
-import io.github.wolfandw.transfer.dto.TransfetEditRequestDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.TransfetEditRequestDto;
 import io.github.wolfandw.transfer.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +36,7 @@ public class TransferController {
      */
     @PostMapping("/transfer")
     public Mono<AccountPageDto> transfer(@ModelAttribute TransfetEditRequestDto request) {
-        LOG.debug("Gateway -> Transfer. Получен запрос на перевод наличных");
+        LOG.info("Gateway -> Transfer. Получен запрос на перевод наличных");
         return transferService.transfer(request.getValue(), request.getLogin());
     }
 }

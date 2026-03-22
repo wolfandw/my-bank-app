@@ -1,7 +1,7 @@
 package io.github.wolfandw.accounts.service.impl;
 
-import io.github.wolfandw.accounts.dto.AccountPageDto;
-import io.github.wolfandw.accounts.dto.CashAction;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.accounts.service.CashService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +19,8 @@ import java.math.BigDecimal;
 @Service
 public class CashServiceImpl implements CashService {
     private static final Logger LOG = LoggerFactory.getLogger(CashServiceImpl.class);
-    private final WebClient gatewayWebClient;
-    private final String gatewayBaseUrl;
+
+    private final WebClient notificationsWebClient;
 
     @Autowired
     private AccountStub accountStub;
@@ -28,18 +28,15 @@ public class CashServiceImpl implements CashService {
     /**
      * Создает сервис.
      *
-     * @param gatewayWebClient веб-клиент
-     * @param gatewayBaseUrl URL шлюза
+     * @param notificationsWebClient веб-клиент
      */
-    public CashServiceImpl(WebClient gatewayWebClient,
-                           @Value("${bank.gateway.base-url}") String gatewayBaseUrl) {
-        this.gatewayWebClient = gatewayWebClient;
-        this.gatewayBaseUrl = gatewayBaseUrl;
+    public CashServiceImpl(WebClient notificationsWebClient) {
+        this.notificationsWebClient = notificationsWebClient;
     }
 
     @Override
     public Mono<AccountPageDto> editCash(BigDecimal value, CashAction action) {
-        LOG.debug("Accounts. Обработка запроса на изменение наличных");
+        LOG.info("Accounts. Обработка запроса на изменение наличных");
         return Mono.just(accountStub.editCash(value.intValue(), action));
     }
 }

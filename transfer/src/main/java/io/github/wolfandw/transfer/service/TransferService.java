@@ -1,6 +1,6 @@
 package io.github.wolfandw.transfer.service;
 
-import io.github.wolfandw.transfer.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;

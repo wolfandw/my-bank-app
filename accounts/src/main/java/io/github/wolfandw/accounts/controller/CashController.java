@@ -1,7 +1,7 @@
 package io.github.wolfandw.accounts.controller;
 
-import io.github.wolfandw.accounts.dto.AccountPageDto;
-import io.github.wolfandw.accounts.dto.CashEditRequestDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.CashEditRequestDto;
 import io.github.wolfandw.accounts.service.CashService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class CashController {
      */
     @PostMapping("/api/cash")
     public Mono<AccountPageDto> editCash(@ModelAttribute CashEditRequestDto request) {
-        LOG.debug("Cash -> Accounts. Получен запрос на изменение наличных");
+        LOG.info("Cash -> Accounts. Получен запрос на изменение наличных");
         return cashService.editCash(request.getValue(), request.getAction());
     }
 }

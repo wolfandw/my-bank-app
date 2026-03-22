@@ -1,7 +1,7 @@
 package io.github.wolfandw.accounts.controller;
 
-import io.github.wolfandw.accounts.dto.AccountEditRequestDto;
-import io.github.wolfandw.accounts.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.AccountEditRequestDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
 import io.github.wolfandw.accounts.service.AccountsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +35,7 @@ public class AccountsController {
      */
     @GetMapping("/api/account")
     public Mono<AccountPageDto> getAccount() {
+        LOG.info("Gateway -> Accounts. Получен запрос на получение данных аккаунта");
         return accountsService.getAccount();
     }
 
@@ -46,7 +47,7 @@ public class AccountsController {
      */
     @PostMapping("/api/account")
     public Mono<AccountPageDto> editAccount(@ModelAttribute AccountEditRequestDto request) {
-        LOG.debug("Gateway -> Accounts. Получен запрос на изменение персональных данных");
+        LOG.info("Gateway -> Accounts. Получен запрос на изменение персональных данных");
        return accountsService.editAccount(request.getName(), request.getBirthdate());
     }
 }

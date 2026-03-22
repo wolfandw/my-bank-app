@@ -1,7 +1,7 @@
 package io.github.wolfandw.frontui.controller;
 
-import io.github.wolfandw.frontui.dto.AccountEditRequestDto;
-import io.github.wolfandw.frontui.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.AccountEditRequestDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
 import io.github.wolfandw.frontui.service.AccountsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +39,7 @@ public class AccountsController {
      */
     @GetMapping("/account")
     public Mono<Rendering> getAccount() {
+        LOG.info("Пользователь -> Front UI. Получен запрос на получение данных аккаунта");
         Mono<AccountPageDto> accountPageDtoMono = accountsService.getAccount();
         return Mono.just(Rendering.view(TEMPLATE_MAIN)
                         .modelAttribute(ATTRIBUTE_ACCOUNT_PAGE, accountPageDtoMono)
@@ -54,7 +55,7 @@ public class AccountsController {
      */
     @PostMapping("/account")
     public Mono<String> editAccount(@ModelAttribute AccountEditRequestDto request) {
-        LOG.debug("Пользователь -> Front UI. Получен запрос на изменение персональных данных");
+        LOG.info("Пользователь -> Front UI. Получен запрос на изменение персональных данных");
         Mono<AccountPageDto> accountPageDtoMono = accountsService.editAccount(request.getName(), request.getBirthdate());
         return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));
     }

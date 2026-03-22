@@ -1,8 +1,8 @@
 package io.github.wolfandw.accounts.service.impl;
 
-import io.github.wolfandw.accounts.dto.AccountDto;
-import io.github.wolfandw.accounts.dto.AccountPageDto;
-import io.github.wolfandw.accounts.dto.CashAction;
+import io.github.wolfandw.chassis.dto.AccountDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.CashAction;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;

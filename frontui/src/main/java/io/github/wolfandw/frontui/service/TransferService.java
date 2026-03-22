@@ -1,6 +1,6 @@
 package io.github.wolfandw.frontui.service;
 
-import io.github.wolfandw.frontui.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.AccountPageDto;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
