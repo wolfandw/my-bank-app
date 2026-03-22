@@ -1,4 +1,4 @@
-package io.github.wolfandw.accounts.dto;
+package io.github.wolfandw.cash.dto;
 
 import java.util.List;
 
@@ -95,7 +95,7 @@ public class AccountPageDto {
     }
 
     /**
-     * Получить список пользователей.
+     * получить список пользователей.
      *
      * @return список пользователей
      */

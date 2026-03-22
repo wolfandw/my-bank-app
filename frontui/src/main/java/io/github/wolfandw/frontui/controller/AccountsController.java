@@ -1,21 +1,23 @@
 package io.github.wolfandw.frontui.controller;
 
+import io.github.wolfandw.frontui.dto.AccountEditRequestDto;
 import io.github.wolfandw.frontui.dto.AccountPageDto;
 import io.github.wolfandw.frontui.service.AccountsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDate;
 
 /**
  * Контроллер аккаунтов.
  */
 @Controller
 public class AccountsController {
+    private static final Logger LOG = LoggerFactory.getLogger(AccountsController.class);
     private static final String TEMPLATE_MAIN = "main";
     private static final String ATTRIBUTE_ACCOUNT_PAGE = "accountPage";
 
@@ -47,16 +49,12 @@ public class AccountsController {
     /**
      * Изменяет имя и дату рождения.
      *
-     * @param name      имя
-     * @param birthdate дата рождения
-     * @return шаблон и модель аккаунта текущего пользователя
+     * @param request имя и дата рождения
+     * @return шаблон текущего пользователя
      */
     @PostMapping("/account")
-    public Mono<Rendering> editAccount(@RequestParam("name") String name, @RequestParam("birthdate") LocalDate birthdate) {
-        Mono<AccountPageDto> accountPageDtoMono = accountsService.editAccount(name, birthdate);
-        return Mono.just(Rendering.view(TEMPLATE_MAIN)
-                        .modelAttribute(ATTRIBUTE_ACCOUNT_PAGE, accountPageDtoMono)
-                        .build()
-        );
+    public Mono<String> editAccount(@ModelAttribute AccountEditRequestDto request) {
+        Mono<AccountPageDto> accountPageDtoMono = accountsService.editAccount(request.getName(), request.getBirthDate());
+        return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));
     }
 }

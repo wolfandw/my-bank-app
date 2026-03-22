@@ -1,7 +1,6 @@
 package io.github.wolfandw.frontui.service.impl;
 
 import io.github.wolfandw.frontui.dto.AccountPageDto;
-import io.github.wolfandw.frontui.service.AccountsService;
 import io.github.wolfandw.frontui.service.TransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

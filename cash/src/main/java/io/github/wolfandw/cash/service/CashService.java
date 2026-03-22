@@ -1,7 +1,7 @@
-package io.github.wolfandw.frontui.service;
+package io.github.wolfandw.cash.service;
 
-import io.github.wolfandw.frontui.dto.AccountPageDto;
-import io.github.wolfandw.frontui.dto.CashAction;
+import io.github.wolfandw.cash.dto.AccountPageDto;
+import io.github.wolfandw.cash.dto.CashAction;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;

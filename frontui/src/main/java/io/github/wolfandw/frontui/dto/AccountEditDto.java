@@ -13,10 +13,10 @@ public class AccountEditDto {
      * Создает DTO-представление для обновления данных аккаунта.
      *
      * @param name имя
-     * @param birthdate дата рождения
+     * @param birthDate дата рождения
      */
-    public AccountEditDto(String name, LocalDate birthdate) {
+    public AccountEditDto(String name, LocalDate birthDate) {
         this.name = name;
-        this.birthDate = birthdate;
+        this.birthDate = birthDate;
     }
 }

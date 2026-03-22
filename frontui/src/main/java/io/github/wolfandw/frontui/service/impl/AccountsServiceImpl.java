@@ -1,14 +1,14 @@
 package io.github.wolfandw.frontui.service.impl;
 
-import io.github.wolfandw.frontui.dto.AccountEditDto;
 import io.github.wolfandw.frontui.dto.AccountPageDto;
 import io.github.wolfandw.frontui.service.AccountsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.time.LocalDate;
 
 /**
@@ -18,7 +18,6 @@ import java.time.LocalDate;
 public class AccountsServiceImpl implements AccountsService {
     private final WebClient gatewayWebClient;
     private final String gatewayBaseUrl;
-    private final AccountStub accountStub;
 
     /**
      * Создает сервис.
@@ -27,10 +26,9 @@ public class AccountsServiceImpl implements AccountsService {
      * @param gatewayBaseUrl URL шлюза
      */
     public AccountsServiceImpl(WebClient gatewayWebClient,
-                               @Value("${gateway.url}") String gatewayBaseUrl, AccountStub accountStub) {
+                               @Value("${gateway.url}") String gatewayBaseUrl) {
         this.gatewayWebClient = gatewayWebClient;
         this.gatewayBaseUrl = gatewayBaseUrl;
-        this.accountStub = accountStub;
     }
 
     @Override
@@ -43,12 +41,21 @@ public class AccountsServiceImpl implements AccountsService {
     }
 
     @Override
-    public Mono<AccountPageDto> editAccount(String name, LocalDate birthdate) {
-        AccountEditDto updateDto = new AccountEditDto(name, birthdate);
-        return gatewayWebClient.patch()
-                .uri(gatewayBaseUrl + "/account")
-                .bodyValue(updateDto)
+    public Mono<AccountPageDto> editAccount(String name, LocalDate birthDate) {
+        return gatewayWebClient.post()
+                .uri(uriBuilder -> buildUri(uriBuilder, name, birthDate))
                 .retrieve()
                 .bodyToMono(AccountPageDto.class);
+    }
+
+    private URI buildUri(UriBuilder uriBuilder, String name, LocalDate birthDate) {
+        return uriBuilder
+                .scheme("http")
+                .host("localhost")
+                .port("8081")
+                .path("/account")
+                .queryParam("name", name)
+                .queryParam("birthDate", birthDate)
+                .build();
     }
 }

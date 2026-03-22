@@ -1,8 +1,8 @@
-package io.github.wolfandw.frontui.service.impl;
+package io.github.wolfandw.cash.service.impl;
 
-import io.github.wolfandw.frontui.dto.AccountPageDto;
-import io.github.wolfandw.frontui.dto.CashAction;
-import io.github.wolfandw.frontui.service.CashService;
+import io.github.wolfandw.cash.dto.AccountPageDto;
+import io.github.wolfandw.cash.dto.CashAction;
+import io.github.wolfandw.cash.service.CashService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,14 +30,14 @@ public class CashServiceImpl implements CashService {
      * @param gatewayBaseUrl URL шлюза
      */
     public CashServiceImpl(WebClient gatewayWebClient,
-                               @Value("${gateway.url}") String gatewayBaseUrl) {
+                               @Value("${bank.accounts.base-url}") String gatewayBaseUrl) {
         this.gatewayWebClient = gatewayWebClient;
         this.gatewayBaseUrl = gatewayBaseUrl;
     }
 
     @Override
     public Mono<AccountPageDto> editCash(BigDecimal value, CashAction action) {
-        LOG.error("Отправка запроса на изменение наличных из Front UI в шлюз");
+        LOG.error("Отправка запроса на изменение наличных из Кеш-сервис в Аккаунт-сервис");
         return gatewayWebClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, value, action))
                 .retrieve()
@@ -48,8 +48,8 @@ public class CashServiceImpl implements CashService {
         return uriBuilder
                 .scheme("http")
                 .host("localhost")
-                .port("8081")
-                .path("/cash")
+                .port("8083")
+                .path("/api/cash")
                 .queryParam("value", value)
                 .queryParam("action", action)
                 .build();

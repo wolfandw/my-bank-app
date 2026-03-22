@@ -20,9 +20,9 @@ public interface AccountsService {
      * Редактирует имя и дату рождения.
      *
      * @param name имя
-     * @param birthdate дата рождения
+     * @param birthDate дата рождения
      * @return DTO-представление аккаунта
      */
-    Mono<AccountPageDto> editAccount(String name, LocalDate birthdate);
+    Mono<AccountPageDto> editAccount(String name, LocalDate birthDate);
 
 }

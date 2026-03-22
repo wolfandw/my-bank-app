@@ -1,14 +1,13 @@
 package io.github.wolfandw.accounts.controller;
 
+import io.github.wolfandw.accounts.dto.AccountEditRequestDto;
 import io.github.wolfandw.accounts.dto.AccountPageDto;
 import io.github.wolfandw.accounts.service.AccountsService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDate;
 
 /**
  * Rest-контроллер аккаунтов.
@@ -29,9 +28,9 @@ public class AccountsController {
     /**
      * Возвращает аккаунт текущего пользователя.
      *
-     * @return шаблон и модель аккаунта текущего пользователя
+     * @return DTO-модель аккаунта текущего пользователя
      */
-    @GetMapping("/account")
+    @GetMapping("/api/account")
     public Mono<AccountPageDto> getAccount() {
         return accountsService.getAccount();
     }
@@ -39,12 +38,11 @@ public class AccountsController {
     /**
      * Изменяет имя и дату рождения.
      *
-     * @param name      имя
-     * @param birthdate дата рождения
-     * @return шаблон и модель аккаунта текущего пользователя
+     * @param request параметры запроса
+     * @return DTO-модель аккаунта текущего пользователя
      */
-    @PostMapping("/account")
-    public Mono<AccountPageDto> editAccount(@RequestParam("name") String name, @RequestParam("birthdate") LocalDate birthdate) {
-       return accountsService.editAccount(name, birthdate);
+    @PostMapping("/api/account")
+    public Mono<AccountPageDto> editAccount(@ModelAttribute AccountEditRequestDto request) {
+       return accountsService.editAccount(request.getName(), request.getBirthDate());
     }
 }

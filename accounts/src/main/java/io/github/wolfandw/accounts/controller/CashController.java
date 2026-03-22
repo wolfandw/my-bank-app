@@ -1,22 +1,21 @@
-package io.github.wolfandw.frontui.controller;
+package io.github.wolfandw.accounts.controller;
 
-import io.github.wolfandw.frontui.dto.AccountPageDto;
-import io.github.wolfandw.frontui.dto.CashEditRequestDto;
-import io.github.wolfandw.frontui.service.CashService;
+import io.github.wolfandw.accounts.dto.AccountPageDto;
+import io.github.wolfandw.accounts.dto.CashEditRequestDto;
+import io.github.wolfandw.accounts.service.CashService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 /**
  * Контроллер для работы с наличностью.
  */
-@Controller
+@RestController
 public class CashController {
     private static final Logger LOG = LoggerFactory.getLogger(CashController.class);
-
     private final CashService cashService;
 
     /**
@@ -32,12 +31,11 @@ public class CashController {
      * Изменяет состояние наличности.
      *
      * @param request сумма списания (пополнения) и действие с наличностью (GET - снять, PUT - пополнить)
-     * @return шаблон аккаунта текущего пользователя
+     * @return DTO-модель аккаунта текущего пользователя
      */
-    @PostMapping("/cash")
-    public Mono<String> editCash(@ModelAttribute CashEditRequestDto request) {
-        LOG.error("Запрос изменения наличных в Front UI");
-        Mono<AccountPageDto> accountPageDtoMono = cashService.editCash(request.getValue(), request.getAction());
-        return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));
+    @PostMapping("/api/cash")
+    public Mono<AccountPageDto> editCash(@ModelAttribute CashEditRequestDto request) {
+        LOG.error("Получение запроса на изменение наличных в Аккаунт-сервис");
+        return cashService.editCash(request.getValue(), request.getAction());
     }
 }

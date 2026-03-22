@@ -74,7 +74,7 @@ public class AccountStub {
     public AccountPageDto fillModel(List<String> errors, @Nullable String info) {
         AccountPageDto accountPageDto = new AccountPageDto();
         accountPageDto.setName(name);
-        accountPageDto.setBirthdate(birthdate.format(DateTimeFormatter.ISO_DATE));
+        accountPageDto.setBirthDate(birthdate.format(DateTimeFormatter.ISO_DATE));
         accountPageDto.setSum(sum);
         accountPageDto.setAccounts(accounts);
         accountPageDto.setErrors(errors);
