@@ -1,7 +1,7 @@
 package io.github.wolfandw.frontui.controller;
 
 import io.github.wolfandw.chassis.dto.AccountPageDto;
-import io.github.wolfandw.chassis.dto.TransfetEditRequestDto;
+import io.github.wolfandw.chassis.dto.TransferEditRequestDto;
 import io.github.wolfandw.frontui.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class TransferController {
      * @return шаблон и модель аккаунта текущего пользователя
      */
     @PostMapping("/transfer")
-    public Mono<String> transfer(@ModelAttribute TransfetEditRequestDto request) {
+    public Mono<String> transfer(@ModelAttribute TransferEditRequestDto request) {
         LOG.info("Пользователь -> Front UI. Получен запрос на перевод наличных");
         Mono<AccountPageDto> accountPageDtoMono = transferService.transfer(request.getValue(), request.getLogin());
         return accountPageDtoMono.map(apd -> "redirect:/account").switchIfEmpty(Mono.just("redirect:/account"));

@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * DTO-представление данных для запроса перевода наличности.
  */
-public class TransfetEditRequestDto {
+public class TransferEditRequestDto {
     private BigDecimal value;
     private String login;
 
@@ -15,7 +15,7 @@ public class TransfetEditRequestDto {
      * @param value сумма
      * @param login логин
      */
-    public TransfetEditRequestDto(BigDecimal value, String login) {
+    public TransferEditRequestDto(BigDecimal value, String login) {
         this.value = value;
         this.login = login;
     }
