@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 public class TransferServiceImpl implements TransferService {
     private static final Logger LOG = LoggerFactory.getLogger(TransferServiceImpl.class);
 
-    private final WebClient notificationsWebClient;
+    private final WebClient loadBalancedWebClient;
 
     @Autowired
     private AccountStub accountStub;
@@ -27,10 +27,10 @@ public class TransferServiceImpl implements TransferService {
     /**
      * Создает сервис.
      *
-     * @param notificationsWebClient веб-клиент
+     * @param loadBalancedWebClient веб-клиент
      */
-    public TransferServiceImpl(WebClient notificationsWebClient) {
-        this.notificationsWebClient = notificationsWebClient;
+    public TransferServiceImpl(WebClient loadBalancedWebClient) {
+        this.loadBalancedWebClient = loadBalancedWebClient;
     }
 
     @Override

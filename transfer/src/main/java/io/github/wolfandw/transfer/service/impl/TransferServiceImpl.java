@@ -4,6 +4,7 @@ import io.github.wolfandw.chassis.dto.AccountPageDto;
 import io.github.wolfandw.transfer.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
@@ -19,24 +20,39 @@ import java.net.URI;
 public class TransferServiceImpl implements TransferService {
     private static final Logger LOG = LoggerFactory.getLogger(TransferServiceImpl.class);
 
-    private final WebClient accountsWebClient;
-    private final WebClient notificationsWebClient;
+    private static final String SCHEME = "http";
+    private static final String NOTIFY_PATH = "/api/notify";
+    private static final String TRANSFER_PATH = "/api/transfer";
+    private static final String VALUE_PARAMETER = "value";
+    private static final String LOGIN_PARAMETER = "login";
+
+    private final WebClient loadBalancedWebClient;
+
+    @Value("${notifications.host}")
+    private String notificationsHost;
+
+    @Value("${notifications.port}")
+    private String notificationsPort;
+
+    @Value("${accounts.host}")
+    private String accountsHost;
+
+    @Value("${accounts.port}")
+    private String accountsPort;
 
     /**
      * Создает сервис.
      *
-     * @param accountsWebClient accounts веб-клиент
-     * @param notificationsWebClient notifications веб-клиент
+     * @param loadBalancedWebClient веб-клиент
      */
-    public TransferServiceImpl(WebClient accountsWebClient, WebClient notificationsWebClient) {
-        this.accountsWebClient = accountsWebClient;
-        this.notificationsWebClient = notificationsWebClient;
+    public TransferServiceImpl(WebClient loadBalancedWebClient) {
+        this.loadBalancedWebClient = loadBalancedWebClient;
     }
 
     @Override
     public Mono<AccountPageDto> transfer(BigDecimal value, String login) {
         LOG.info("Transfer -> Accounts. Отправка запроса на перевод наличных");
-        return accountsWebClient.post()
+        return loadBalancedWebClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, value, login))
                 .retrieve()
                 .bodyToMono(AccountPageDto.class).
@@ -45,8 +61,8 @@ public class TransferServiceImpl implements TransferService {
 
     private Mono<String> notify(AccountPageDto accountPageDto) {
         LOG.info("Accounts -> Notifications. Отправка запроса на нотификацию");
-        return notificationsWebClient.post()
-                .uri(uriBuilder -> buildUri(uriBuilder))
+        return loadBalancedWebClient.post()
+                .uri(this::buildUri)
                 .bodyValue(accountPageDto)
                 .retrieve()
                 .bodyToMono(String.class);
@@ -54,15 +70,21 @@ public class TransferServiceImpl implements TransferService {
 
     private URI buildUri(UriBuilder uriBuilder) {
         return uriBuilder
-                .path("/api/notify")
+                .scheme(SCHEME)
+                .host(notificationsHost)
+                .port(notificationsPort)
+                .path(NOTIFY_PATH)
                 .build();
     }
 
     private URI buildUri(UriBuilder uriBuilder, BigDecimal value, String login) {
         return uriBuilder
-                .path("/api/transfer")
-                .queryParam("value", value)
-                .queryParam("login", login)
+                .scheme(SCHEME)
+                .host(accountsHost)
+                .port(accountsPort)
+                .path(TRANSFER_PATH)
+                .queryParam(VALUE_PARAMETER, value)
+                .queryParam(LOGIN_PARAMETER, login)
                 .build();
     }
 }

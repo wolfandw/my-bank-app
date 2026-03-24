@@ -20,31 +20,49 @@ import java.net.URI;
 public class TransferServiceImpl implements TransferService {
     private static final Logger LOG = LoggerFactory.getLogger(TransferServiceImpl.class);
 
-    private final WebClient gatewayWebClient;
+    private static final String SCHEME = "http";
+    private static final String TRANSFER_PATH = "/transfer";
+    private static final String VALUE_PARAMETER = "value";
+    private static final String LOGIN_PARAMETER = "login";
+
+    private final WebClient loadBalancedWebClient;
+
+    @Value("${gateway.host}")
+    private String gatewayHost;
+
+    @Value("${gateway.port}")
+    private String gatewayPort;
 
     /**
      * Создает сервис.
      *
-     * @param gatewayWebClient веб-клиент
+     * @param loadBalancedWebClient веб-клиент
      */
-    public TransferServiceImpl(WebClient gatewayWebClient) {
-        this.gatewayWebClient = gatewayWebClient;
+    public TransferServiceImpl(WebClient loadBalancedWebClient) {
+        this.loadBalancedWebClient = loadBalancedWebClient;
     }
 
     @Override
     public Mono<AccountPageDto> transfer(BigDecimal value, String login) {
         LOG.info("Front UI -> Gateway. Отправка запроса на перевод наличных");
-        return gatewayWebClient.post()
-                .uri(uriBuilder -> buildUri(uriBuilder, value, login))
+        return loadBalancedWebClient.post()
+                .uri(uriBuilder -> buildUri(getUriBuilder(uriBuilder), value, login))
                 .retrieve()
                 .bodyToMono(AccountPageDto.class);
     }
 
+    private UriBuilder getUriBuilder(UriBuilder uriBuilder) {
+        return uriBuilder
+                .scheme(SCHEME)
+                .host(gatewayHost)
+                .port(gatewayPort)
+                .path(TRANSFER_PATH);
+    }
+
     private URI buildUri(UriBuilder uriBuilder, BigDecimal value, String login) {
         return uriBuilder
-                .path("/transfer")
-                .queryParam("value", value)
-                .queryParam("login", login)
+                .queryParam(VALUE_PARAMETER, value)
+                .queryParam(LOGIN_PARAMETER, login)
                 .build();
     }
 }

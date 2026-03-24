@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 public class CashServiceImpl implements CashService {
     private static final Logger LOG = LoggerFactory.getLogger(CashServiceImpl.class);
 
-    private final WebClient notificationsWebClient;
+    private final WebClient loadBalancedWebClient;
 
     @Autowired
     private AccountStub accountStub;
@@ -28,10 +28,10 @@ public class CashServiceImpl implements CashService {
     /**
      * Создает сервис.
      *
-     * @param notificationsWebClient веб-клиент
+     * @param loadBalancedWebClient веб-клиент
      */
-    public CashServiceImpl(WebClient notificationsWebClient) {
-        this.notificationsWebClient = notificationsWebClient;
+    public CashServiceImpl(WebClient loadBalancedWebClient) {
+        this.loadBalancedWebClient = loadBalancedWebClient;
     }
 
     @Override

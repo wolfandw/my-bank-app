@@ -23,24 +23,39 @@ import java.net.URI;
 public class CashServiceImpl implements CashService {
     private static final Logger LOG = LoggerFactory.getLogger(CashServiceImpl.class);
 
-    private final WebClient accountsWebClient;
-    private final WebClient notificationsWebClient;
+    private static final String SCHEME = "http";
+    private static final String NOTIFY_PATH = "/api/notify";
+    private static final String CASH_PATH = "/api/cash";
+    private static final String VALUE_PARAMETER = "value";
+    private static final String ACTION_PARAMETER = "action";
+
+    private final WebClient loadBalancedWebClient;
+
+    @Value("${notifications.host}")
+    private String notificationsHost;
+
+    @Value("${notifications.port}")
+    private String notificationsPort;
+
+    @Value("${accounts.host}")
+    private String accountsHost;
+
+    @Value("${accounts.port}")
+    private String accountsPort;
 
     /**
      * Создает сервис.
      *
-     * @param accountsWebClient accounts веб-клиент
-     * @param notificationsWebClient notifications веб-клиент
+     * @param loadBalancedWebClient веб-клиент
      */
-    public CashServiceImpl(WebClient accountsWebClient, WebClient notificationsWebClient) {
-        this.accountsWebClient = accountsWebClient;
-        this.notificationsWebClient = notificationsWebClient;
+    public CashServiceImpl(WebClient loadBalancedWebClient) {
+        this.loadBalancedWebClient = loadBalancedWebClient;
     }
 
     @Override
     public Mono<AccountPageDto> editCash(BigDecimal value, CashAction action) {
         LOG.info("Cash -> Accounts. Отправка запроса на изменение наличных");
-        return accountsWebClient.post()
+        return loadBalancedWebClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, value, action))
                 .retrieve()
                 .bodyToMono(AccountPageDto.class).
@@ -49,8 +64,8 @@ public class CashServiceImpl implements CashService {
 
     private Mono<String> notify(AccountPageDto accountPageDto) {
         LOG.info("Accounts -> Notifications. Отправка запроса на нотификацию");
-        return notificationsWebClient.post()
-                .uri(uriBuilder -> buildUri(uriBuilder))
+        return loadBalancedWebClient.post()
+                .uri(this::buildUri)
                 .bodyValue(accountPageDto)
                 .retrieve()
                 .bodyToMono(String.class);
@@ -58,15 +73,21 @@ public class CashServiceImpl implements CashService {
 
     private URI buildUri(UriBuilder uriBuilder) {
         return uriBuilder
-                .path("/api/notify")
+                .scheme(SCHEME)
+                .host(notificationsHost)
+                .port(notificationsPort)
+                .path(NOTIFY_PATH)
                 .build();
     }
 
     private URI buildUri(UriBuilder uriBuilder, BigDecimal value, CashAction action) {
         return uriBuilder
-                .path("/api/cash")
-                .queryParam("value", value)
-                .queryParam("action", action)
+                .scheme(SCHEME)
+                .host(accountsHost)
+                .port(accountsPort)
+                .path(CASH_PATH)
+                .queryParam(VALUE_PARAMETER, value)
+                .queryParam(ACTION_PARAMETER, action)
                 .build();
     }
 }
