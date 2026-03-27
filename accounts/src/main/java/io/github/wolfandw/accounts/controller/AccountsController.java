@@ -1,7 +1,6 @@
 package io.github.wolfandw.accounts.controller;
 
-import io.github.wolfandw.chassis.dto.AccountEditRequestDto;
-import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.*;
 import io.github.wolfandw.accounts.service.AccountsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,7 @@ import reactor.core.publisher.Mono;
 @RestController
 public class AccountsController {
     private static final Logger LOG = LoggerFactory.getLogger(AccountsController.class);
+
     private final AccountsService accountsService;
 
     /**
@@ -29,25 +29,37 @@ public class AccountsController {
     }
 
     /**
-     * Возвращает аккаунт текущего пользователя.
+     * Возвращает счет текущего пользователя.
      *
-     * @return DTO-модель аккаунта текущего пользователя
+     * @return DTO-модель счета текущего пользователя
      */
     @GetMapping("/api/account")
-    public Mono<AccountPageDto> getAccount() {
+    public Mono<AccountDto> getAccount() {
         LOG.info("Gateway -> Accounts. Получен запрос на получение данных аккаунта");
-        return accountsService.getAccount();
+        return accountsService.getAccount("user");
     }
 
     /**
-     * Изменяет имя и дату рождения.
+     * Изменяет состояние наличности.
      *
-     * @param request параметры запроса
-     * @return DTO-модель аккаунта текущего пользователя
+     * @param request сумма списания (пополнения) и действие с наличностью (GET - снять, PUT - пополнить)
+     * @return DTO-модель результата операции
      */
-    @PostMapping("/api/account")
-    public Mono<AccountPageDto> editAccount(@ModelAttribute AccountEditRequestDto request) {
-        LOG.info("Gateway -> Accounts. Получен запрос на изменение персональных данных");
-       return accountsService.editAccount(request.getName(), request.getBirthdate());
+    @PostMapping("/api/cash")
+    public Mono<OperationResultDto> changeCash(@ModelAttribute ChangeCashRequestDto request) {
+        LOG.info("Cash -> Accounts. Получен запрос на изменение наличных");
+        return accountsService.changeCash("user", request.getValue(), request.getAction());
+    }
+
+    /**
+     * Осуществляет перевод наличных получателю.
+     *
+     * @param request сумма списания и логин пользователя получателя
+     * @return DTO-модель результата операции
+     */
+    @PostMapping("/api/transfer")
+    public Mono<OperationResultDto> transferCash(@ModelAttribute TransferCashRequestDto request) {
+        LOG.info("Transfer -> Accounts. Получен запрос на перевод наличных");
+        return accountsService.transferCash("user", request.getValue(), request.getLogin());
     }
 }

@@ -3,21 +3,21 @@ package io.github.wolfandw.chassis.dto;
 import java.math.BigDecimal;
 
 /**
- * DTO-представление данных для запроса перевода наличности.
+ * DTO-представление данных для запроса обновления наличности.
  */
-public class TransferEditRequestDto {
+public class ChangeCashRequestDto {
     private BigDecimal value;
-    private String login;
+    private CashAction action;
 
     /**
      * Создает DTO-представление данных для запроса обновления наличности.
      *
      * @param value сумма
-     * @param login логин
+     * @param action действие
      */
-    public TransferEditRequestDto(BigDecimal value, String login) {
+    public ChangeCashRequestDto(BigDecimal value, CashAction action) {
         this.value = value;
-        this.login = login;
+        this.action = action;
     }
 
     /**
@@ -30,11 +30,11 @@ public class TransferEditRequestDto {
     }
 
     /**
-     * Возвращает логин.
+     * Возвращает действие.
      *
-     * @return логин
+     * @return действие
      */
-    public String getLogin() {
-        return login;
+    public CashAction getAction() {
+        return action;
     }
 }

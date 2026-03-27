@@ -9,11 +9,11 @@
 </head>
 
 <body class="bg-light">
-    <div class="alert alert-danger vstack" role="alert" th:if="${accountPage.getErrors()!=null}" th:each="error : ${accountPage.getErrors()}">
+    <div class="alert alert-danger vstack" role="alert" th:if="${errors!=null}" th:each="error : ${errors}">
         <span th:text="${error}"/>
     </div>
-    <div class="alert alert-success" role="alert" th:if="${accountPage.getInfo()!=null}" th:text="${accountPage.getInfo()}"/>
-    <div class="container p-2">
+    <div class="alert alert-success" role="alert" th:if="${info!=null}" th:text="${info}"/>
+    <div class="container p-2" th:if="${account!=null}">
         <div class="row p-2">
             <div class="col">
                 <div class="hstack gap-3">
@@ -36,7 +36,7 @@
                                     <label for="name">Фамилия Имя</label>
                                 </h6>
                                 <p>
-                                    <input type="text" class="form-control" id="name" name="name" placeholder="Иванов Иван" th:value="${accountPage.getName()}" required>
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="Иванов Иван" th:value="${account.name()}" required>
                                 </p>
                             </div>
                             <div class="form-group">
@@ -44,12 +44,12 @@
                                     <label for="birthdate">Дата рождения</label>
                                 </h6>
                                 <p>
-                                    <input type="date" class="form-control" name="birthdate" id="birthdate" th:value="${accountPage.getBirthdate()}" required>
+                                    <input type="date" class="form-control" name="birthdate" id="birthdate" th:value="${account.birthdate()}" required>
                                 </p>
                             </div>
                             <div class="form-group">
                                 <h6>Сумма на счету, руб</h6>
-                                <p th:text="${accountPage.getSum()}"/>
+                                <p th:text="${account.balance()}"/>
                             </div>
                             <button type="submit" class="btn btn-secondary">Сохранить изменения</button>
                         </form>
@@ -94,7 +94,7 @@
                                 </h6>
                                 <p>
                                     <select class="form-select" id="to_account" name="login" required>
-                                        <option th:each="account : ${accountPage.getAccounts()}" th:value="${account.login}" th:text="${account.name}"/>
+                                        <option th:each="user : ${account.users()}" th:value="${user.login}" th:text="${user.name}"/>
                                     </select>
                                 </p>
                             </div>

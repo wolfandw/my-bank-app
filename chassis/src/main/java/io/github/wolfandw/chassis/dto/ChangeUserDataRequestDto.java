@@ -5,7 +5,7 @@ import java.time.LocalDate;
 /**
  * DTO-представление данных для запроса обновления аккаунта.
  */
-public class AccountEditRequestDto {
+public class ChangeUserDataRequestDto {
     private String name;
     private LocalDate birthdate;
 
@@ -15,7 +15,7 @@ public class AccountEditRequestDto {
      * @param name имя
      * @param birthdate дата рождения
      */
-    public AccountEditRequestDto(String name, LocalDate birthdate) {
+    public ChangeUserDataRequestDto(String name, LocalDate birthdate) {
         this.name = name;
         this.birthdate = birthdate;
     }

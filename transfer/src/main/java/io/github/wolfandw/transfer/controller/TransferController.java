@@ -1,7 +1,7 @@
 package io.github.wolfandw.transfer.controller;
 
 import io.github.wolfandw.chassis.dto.AccountPageDto;
-import io.github.wolfandw.chassis.dto.TransferEditRequestDto;
+import io.github.wolfandw.chassis.dto.TransferCashRequestDto;
 import io.github.wolfandw.transfer.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +34,8 @@ public class TransferController {
      * @param request сумма списания и логин пользователя получателя
      * @return DTO-модель аккаунта текущего пользователя
      */
-    @PostMapping("/transfer")
-    public Mono<AccountPageDto> transfer(@ModelAttribute TransferEditRequestDto request) {
+    @PostMapping("/api/transfer")
+    public Mono<AccountPageDto> transfer(@ModelAttribute TransferCashRequestDto request) {
         LOG.info("Gateway -> Transfer. Получен запрос на перевод наличных");
         return transferService.transfer(request.getValue(), request.getLogin());
     }
