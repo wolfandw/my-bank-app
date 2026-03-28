@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS accounts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_accounts_user_id ON users(user_id);
+CREATE INDEX idx_accounts_user_id ON accounts(user_id);

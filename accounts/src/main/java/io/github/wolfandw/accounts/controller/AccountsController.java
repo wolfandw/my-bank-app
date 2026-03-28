@@ -1,5 +1,6 @@
 package io.github.wolfandw.accounts.controller;
 
+import io.github.wolfandw.chassis.configuration.Constants;
 import io.github.wolfandw.chassis.dto.*;
 import io.github.wolfandw.accounts.service.AccountsService;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public class AccountsController {
     @GetMapping("/api/account")
     public Mono<AccountDto> getAccount() {
         LOG.info("Gateway -> Accounts. Получен запрос на получение данных аккаунта");
-        return accountsService.getAccount("user");
+        return accountsService.getAccount(Constants.JWT_USER_STUB);
     }
 
     /**
@@ -48,7 +49,7 @@ public class AccountsController {
     @PostMapping("/api/cash")
     public Mono<OperationResultDto> changeCash(@ModelAttribute ChangeCashRequestDto request) {
         LOG.info("Cash -> Accounts. Получен запрос на изменение наличных");
-        return accountsService.changeCash("user", request.getValue(), request.getAction());
+        return accountsService.changeCash(Constants.JWT_USER_STUB, request.getValue(), request.getAction());
     }
 
     /**
@@ -60,6 +61,6 @@ public class AccountsController {
     @PostMapping("/api/transfer")
     public Mono<OperationResultDto> transferCash(@ModelAttribute TransferCashRequestDto request) {
         LOG.info("Transfer -> Accounts. Получен запрос на перевод наличных");
-        return accountsService.transferCash("user", request.getValue(), request.getLogin());
+        return accountsService.transferCash(Constants.JWT_USER_STUB, request.getValue(), request.getLogin());
     }
 }

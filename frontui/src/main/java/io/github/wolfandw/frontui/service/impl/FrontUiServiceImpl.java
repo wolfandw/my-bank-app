@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -37,9 +38,7 @@ public class FrontUiServiceImpl implements FrontUiService {
     private static final String ACTION_PARAMETER = "action";
     private static final String LOGIN_PARAMETER = "login";
 
-    private static final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: {0}";
-    private static final String CASH_API_UNAVAILABLE = "Сервис наличных недоступен: {0}";
-    private static final String TRANSFER_API_UNAVAILABLE = "Сервис переводов недоступен: {0}";
+    private final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
 
     private final WebClient loadBalancedWebClient;
 
@@ -66,7 +65,7 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .retrieve()
                 .bodyToMono(AccountDto.class)
                 .onErrorResume(e -> {
-                    LOG.error(MessageFormat.format(ACCOUNTS_API_UNAVAILABLE, e.getMessage()), e);
+                    LOG.error(ACCOUNTS_API_UNAVAILABLE.formatted(e.getMessage()), e);
                     return Mono.empty();
                 });
     }
@@ -88,7 +87,7 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .uri(uriBuilder -> buildUri(getUriBuilder(uriBuilder, CASH_PATH), value, action))
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
-                .onErrorResume(onApiError(CASH_API_UNAVAILABLE));
+                .onErrorResume(onApiError("Сервис наличных недоступен: %s"));
     }
 
     @Override
@@ -98,7 +97,7 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .uri(uriBuilder -> buildUri(getUriBuilder(uriBuilder, TRANSFER_PATH), value, login))
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
-                .onErrorResume(onApiError(TRANSFER_API_UNAVAILABLE));
+                .onErrorResume(onApiError("Сервис переводов недоступен: %s"));
     }
 
     private UriBuilder getUriBuilder(UriBuilder uriBuilder, String path) {
@@ -132,9 +131,9 @@ public class FrontUiServiceImpl implements FrontUiService {
 
     private Function<Throwable, Mono<? extends OperationResultDto>> onApiError(String service) {
         return e -> {
-            String errorMessage = MessageFormat.format(service, e.getMessage());
+            String errorMessage = service.formatted(e.getMessage());
             LOG.error(errorMessage, e);
-            return Mono.just(new OperationResultDto(false, errorMessage, null));
+            return Mono.just(new OperationResultDto(new UUID(0, 0), null, false, errorMessage));
         };
     }
 }

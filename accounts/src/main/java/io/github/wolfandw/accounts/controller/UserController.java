@@ -1,6 +1,7 @@
 package io.github.wolfandw.accounts.controller;
 
 import io.github.wolfandw.accounts.service.UserService;
+import io.github.wolfandw.chassis.configuration.Constants;
 import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.ChangeUserDataRequestDto;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
@@ -39,6 +40,6 @@ public class UserController {
     @PostMapping("/api/account")
     public Mono<OperationResultDto> changeUserData(@ModelAttribute ChangeUserDataRequestDto request) {
         LOG.info("Gateway -> Accounts. Получен запрос на изменение персональных данных");
-       return userService.changeUserData("user", request.getName(), request.getBirthdate());
+       return userService.changeUserData(Constants.JWT_USER_STUB, request.getName(), request.getBirthdate());
     }
 }

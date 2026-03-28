@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  * Авто-конфигурация веб-клиента.
  */
 @AutoConfiguration
-public class WebClientChassisConfiguration {
+public class WebClientConfiguration {
     /**
      * Load balanced WebClient.Builder.
      * Позволяет использовать имена сервисов в URL
@@ -30,8 +30,6 @@ public class WebClientChassisConfiguration {
      */
     @Bean
     public WebClient loadBalancedWebClient(WebClient.Builder loadBalancedWebClientBuilder) {
-
-        return loadBalancedWebClientBuilder
-                .build();
+        return loadBalancedWebClientBuilder.build();
     }
 }

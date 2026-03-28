@@ -1,8 +1,9 @@
 package io.github.wolfandw.cash.controller;
 
-import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.configuration.Constants;
 import io.github.wolfandw.chassis.dto.ChangeCashRequestDto;
 import io.github.wolfandw.cash.service.CashService;
+import io.github.wolfandw.chassis.dto.OperationResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
 @RestController
 public class CashController {
     private static final Logger LOG = LoggerFactory.getLogger(CashController.class);
+
     private final CashService cashService;
 
     /**
@@ -31,11 +33,11 @@ public class CashController {
      * Изменяет состояние наличности.
      *
      * @param request сумма списания (пополнения) и действие с наличностью (GET - снять, PUT - пополнить)
-     * @return DTO-модель аккаунта текущего пользователя
+     * @return DTO-модель результата операции
      */
     @PostMapping("/api/cash")
-    public Mono<AccountPageDto> editCash(@ModelAttribute ChangeCashRequestDto request) {
+    public Mono<OperationResultDto> editCash(@ModelAttribute ChangeCashRequestDto request) {
         LOG.info("Gateway -> Cash. Получен запрос на изменение наличных");
-        return cashService.editCash(request.getValue(), request.getAction());
+        return cashService.changeCash(Constants.JWT_USER_STUB, request.getValue(), request.getAction());
     }
 }

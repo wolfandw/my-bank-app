@@ -6,9 +6,6 @@
 
     <include file="000_init_outbox_table.xml" relativeToChangelogFile="true"/>
     <include file="001_init_users_table.xml" relativeToChangelogFile="true"/>
-    <include file="001_init_accounts_table.xml" relativeToChangelogFile="true"/>
-    <include file="002_init_carts_tables.xml" relativeToChangelogFile="true"/>
-    <include file="003_init_orders_tables.xml" relativeToChangelogFile="true"/>
-    <include file="010_fill_data.xml" relativeToChangelogFile="true"/>
+    <include file="002_init_accounts_table.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

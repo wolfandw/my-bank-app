@@ -6,18 +6,21 @@ import java.math.BigDecimal;
  * DTO-представление данных для запроса перевода наличности.
  */
 public class TransferCashRequestDto {
-    private BigDecimal value;
     private String login;
+    private BigDecimal value;
+    private String recipient;
 
     /**
      * Создает DTO-представление данных для запроса обновления наличности.
      *
-     * @param value сумма
      * @param login логин
+     * @param value сумма
+     * @param recipient логин получателя
      */
-    public TransferCashRequestDto(BigDecimal value, String login) {
-        this.value = value;
+    public TransferCashRequestDto(String login, BigDecimal value, String recipient) {
         this.login = login;
+        this.value = value;
+        this.recipient = recipient;
     }
 
     /**
@@ -36,5 +39,23 @@ public class TransferCashRequestDto {
      */
     public String getLogin() {
         return login;
+    }
+
+    /**
+     * Возвращает логин.
+     *
+     * @return recipient
+     */
+    public String getRecipient() {
+        return recipient;
+    }
+
+    /**
+     * Устанавливает логин.
+     *
+     * @param recipient логин
+     */
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
     }
 }

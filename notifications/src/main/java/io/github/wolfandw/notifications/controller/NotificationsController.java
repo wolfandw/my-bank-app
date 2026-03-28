@@ -1,13 +1,12 @@
 package io.github.wolfandw.notifications.controller;
 
-import io.github.wolfandw.chassis.dto.AccountPageDto;
 import io.github.wolfandw.notifications.service.NotificationsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 /**
  * Контроллер для работы с нотификациями.
@@ -32,9 +31,11 @@ public class NotificationsController {
      *
      * @return нотификация текущего пользователя
      */
-    @PostMapping("/api/notify")
-    public Mono<String> requestNotification( @RequestBody Mono<AccountPageDto> accountPageDtoMono) {
-        LOG.info("Сервис -> Notifications. Получен запрос на нотификацию");
-        return accountPageDtoMono.flatMap(notificationsService::requestNotification);
+    @PostMapping("/api/notifications")
+    public Mono<UUID> requestNotification(@RequestParam(value = "outboxId", required = false) UUID outboxId,
+                                          @RequestParam(value = "userId", required = false) UUID userId,
+                                          @RequestParam(value = "message", required = false) String message) {
+        LOG.info("Outbox -> Notifications. Получен запрос на нотификацию");
+        return notificationsService.requestNotification(outboxId, userId, message);
     }
 }

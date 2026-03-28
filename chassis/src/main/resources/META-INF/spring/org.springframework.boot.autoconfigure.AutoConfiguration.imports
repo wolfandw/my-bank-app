@@ -1,1 +1,2 @@
-io.github.wolfandw.chassis.configuration.WebClientChassisConfiguration
+io.github.wolfandw.chassis.configuration.WebClientConfiguration
+io.github.wolfandw.chassis.configuration.OutboxAutoConfiguration

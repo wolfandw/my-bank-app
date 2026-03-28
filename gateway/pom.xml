@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>gateway</artifactId>
-
     <name>gateway</name>
     <description>gateway</description>
 

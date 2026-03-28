@@ -1,6 +1,7 @@
 package io.github.wolfandw.transfer.service;
 
 import io.github.wolfandw.chassis.dto.AccountPageDto;
+import io.github.wolfandw.chassis.dto.OperationResultDto;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -12,9 +13,10 @@ public interface TransferService {
     /**
      * Перевести наличные.
      *
+     * @param login логин пользователя
      * @param value сумма перевода
-     * @param login получатель перевода
-     * @return DTO-представление аккаунта
+     * @param recipient получатель перевода
+     * @return DTO-модель результата операции
      */
-    Mono<AccountPageDto> transfer(BigDecimal value, String login);
+    Mono<OperationResultDto> transferCash(String login, BigDecimal value, String recipient);
 }

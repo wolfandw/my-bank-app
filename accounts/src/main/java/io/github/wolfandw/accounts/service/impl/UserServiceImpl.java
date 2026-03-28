@@ -8,13 +8,17 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Реализация {@link UserService}.
  */
+@Service
 public class UserServiceImpl implements UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -27,22 +31,36 @@ public class UserServiceImpl implements UserService {
      * @param userRepository репозиторий пользователей
      * @param outboxRepository репозиторий сообщений
      */
-    public UserServiceImpl(UserRepository userRepository, OutboxRepository outboxRepository) {
+    public UserServiceImpl(UserRepository userRepository,
+                           OutboxRepository outboxRepository) {
         this.userRepository = userRepository;
         this.outboxRepository = outboxRepository;
     }
 
     @Override
+    @Transactional
     public Mono<OperationResultDto> changeUserData(String login, String name, LocalDate birthdate) {
         LOG.info(createMessage(login, "Accounts. Обработка запроса на изменение данных пользователя"));
         return userRepository.findByLogin(login).flatMap(user -> {
             if (LocalDate.now().getYear() - birthdate.getYear() < 18) {
-                return Mono.just(new OperationResultDto(false, "Accounts. Недостаточно полных лет (18+)", null));
+                return Mono.just(new OperationResultDto(user.getId(),
+                        login,
+                        false,
+                        "Accounts. Недостаточно полных лет (18+)"));
             }
             return userRepository.save(changeUser(user, name, birthdate)).
-                flatMap(changedUser -> outboxRepository.save(createOutbox(login, "Accounts. Изменены данные пользователя"))).
-                    map(createdOutbox -> new OperationResultDto(true, null, createdOutbox.getMessage()));
-                }).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(false, "Accounts. Не удалось изменить данные пользователя", null))));
+                    flatMap(changedUser -> outboxRepository.save(createOutbox(user.getId(),
+                            login,
+                            "Accounts. Изменены данные пользователя"))).
+                    map(createdOutbox -> new OperationResultDto(user.getId(),
+                            login,
+                            true,
+                            createdOutbox.getMessage())
+                    );
+        }).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(new UUID(0, 0),
+                login,
+                false,
+                "Accounts. Не удалось изменить данные пользователя"))));
     }
 
     private User changeUser(User user, String name, LocalDate birthdate) {
@@ -51,8 +69,9 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    private Outbox createOutbox(String login, String message) {
+    private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
+        outbox.setUserId(userId);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }

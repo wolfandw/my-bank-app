@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Класс счета пользователя.
  */
-@Table("changelog/accounts")
+@Table("accounts")
 public class Account {
     @Id
     private UUID id;

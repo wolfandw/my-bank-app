@@ -11,6 +11,7 @@ import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -35,8 +36,8 @@ public class AccountsServiceImpl implements AccountsService {
      * Создает сервис счетов.
      *
      * @param accountRepository репозиторий счетов
-     * @param userRepository репозиторий пользователей
-     * @param outboxRepository репозиторий сообщений
+     * @param userRepository    репозиторий пользователей
+     * @param outboxRepository  репозиторий сообщений
      */
     public AccountsServiceImpl(AccountRepository accountRepository,
                                UserRepository userRepository,
@@ -47,6 +48,7 @@ public class AccountsServiceImpl implements AccountsService {
     }
 
     @Override
+    @Transactional
     public Mono<AccountDto> getAccount(String login) {
         LOG.info(createMessage(login, "Accounts. Обработка запроса на получение данных счета"));
         Mono<AccountDto> accountDtoMono = getOrCreateUser(login).flatMap(user -> getOrCreateAccount(user).
@@ -57,73 +59,80 @@ public class AccountsServiceImpl implements AccountsService {
             List<UserDto> userDtoList = tuple.getT2();
             accountDto.users().addAll(userDtoList);
             return accountDto;
-        });
+        }).map(acc -> {
+            LOG.info(String.valueOf(acc.id()));
+            return acc;
+        })
+                .onErrorResume(e -> {
+                    LOG.error(e.getMessage());
+                    return Mono.empty();
+                });
     }
 
     @Override
+    @Transactional
     public Mono<OperationResultDto> changeCash(String login, BigDecimal value, CashAction action) {
         LOG.info(createMessage(login, "Accounts. Обработка запроса на изменение состояния счета"));
-        return  userRepository.findByLogin(login).flatMap(user -> accountRepository.findByUserId(user.getId()).flatMap(
+        return userRepository.findByLogin(login).flatMap(user -> accountRepository.findByUserId(user.getId()).flatMap(
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
-                    if (action == CashAction.GET)
-                    {
+                    if (action == CashAction.GET) {
                         if (currentBalance.compareTo(value) < 0) {
-                            return Mono.just(new OperationResultDto(false, "Accounts. Недостаточно средств на счету", null));
-                        }
-                        else {
+                            return Mono.just(new OperationResultDto(user.getId(),
+                                    login,
+                                    false,
+                                    "Accounts. Недостаточно средств на счету"));
+                        } else {
                             account.setBalance(currentBalance.subtract(value));
                             return accountRepository.save(account).
-                                    flatMap(changedAccount -> outboxRepository.save(createOutbox(user.getId(),
-                                            user.getLogin(),
-                                            "Accounts. Снято %s руб".formatted(value.toPlainString())))).
-                                    map(createdOutbox -> new OperationResultDto(true, null , createdOutbox.getMessage()));
+                                    map(changedAccount -> new OperationResultDto(user.getId(),
+                                            login,
+                                            true,
+                                            "Accounts. Снято %s руб".formatted(value.toPlainString())));
                         }
                     } else {
                         account.setBalance(currentBalance.add(value));
                         return accountRepository.save(account).
-                                flatMap(changedAccount -> outboxRepository.save(createOutbox(user.getId(),
-                                        user.getLogin(),
-                                        "Accounts. Внесено %s руб".formatted(value.toPlainString())))).
-                                map(createdOutbox -> new OperationResultDto(true, null , createdOutbox.getMessage()));
+                                map(changedAccount -> new OperationResultDto(user.getId(),
+                                        login,
+                                        true,
+                                        "Accounts. Внесено %s руб".formatted(value.toPlainString())));
                     }
                 }
-        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(false, "Accounts. Не удалось изменить состояние счета", null))));
+        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(new UUID(0, 0), login, false, "Accounts. Не удалось изменить состояние счета"))));
     }
 
     @Override
+    @Transactional
     public Mono<OperationResultDto> transferCash(String login, BigDecimal value, String recipient) {
         LOG.info(createMessage(login, "Accounts. Обработка запроса на перевод денежных средств со счета"));
-        return  userRepository.findByLogin(login).flatMap(user -> accountRepository.findByUserId(user.getId()).flatMap(
+        return userRepository.findByLogin(login).flatMap(user -> accountRepository.findByUserId(user.getId()).flatMap(
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
-                        if (currentBalance.compareTo(value) < 0) {
-                            return Mono.just(new OperationResultDto(false, "Accounts. Недостаточно средств на счету", null));
-                        }
-                        account.setBalance(currentBalance.subtract(value));
-                        return userRepository.findByLogin(recipient).flatMap(userRecipient -> accountRepository.findByUserId(userRecipient.getId()).flatMap(
-                                recipientAccount -> {
-                                    BigDecimal recipientBalance = account.getBalance();
-                                    recipientAccount.setBalance(recipientBalance.add(value));
-                                    return accountRepository.save(recipientAccount).
-                                            flatMap(changedRecipientAccount -> outboxRepository.save(createOutbox(userRecipient.getId(),
-                                                    userRecipient.getLogin(),
-                                                    "Получено %s руб от клиента %s".formatted(value.toPlainString(), login)))).
-                                            flatMap(recipientOutbox -> accountRepository.save(account)).
-                                            flatMap(changedAccount -> outboxRepository.save(createOutbox(user.getId(),
-                                                    user.getLogin(),
-                                                    "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient)))).
-                                            map(createdOutbox -> new OperationResultDto(true, null , createdOutbox.getMessage()));
-                                }));
+                    if (currentBalance.compareTo(value) < 0) {
+                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счету"));
+                    }
+                    account.setBalance(currentBalance.subtract(value));
+                    return userRepository.findByLogin(recipient).flatMap(userRecipient -> accountRepository.findByUserId(userRecipient.getId()).flatMap(
+                            recipientAccount -> {
+                                BigDecimal recipientBalance = account.getBalance();
+                                recipientAccount.setBalance(recipientBalance.add(value));
+                                return accountRepository.save(recipientAccount).
+                                        flatMap(changedRecipientAccount -> accountRepository.save(account)).
+                                        map(createdOutbox -> new OperationResultDto(user.getId(),
+                                                login,
+                                                true,
+                                                "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient)));
+                            }));
                 }
-        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(false, "Accounts. Не выполнить перевод со счета", null))));
+        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(new UUID(0, 0), login, false, "Accounts. Не выполнить перевод со счета"))));
     }
 
     private Mono<User> getOrCreateUser(String login) {
         LOG.info(createMessage(login, "Accounts. Получение или создание пользователя"));
         return userRepository.findByLogin(login).
-                switchIfEmpty(Mono.defer(() -> userRepository.save(createUser(login, login,  LocalDate.of(2001, 1, 1))).
-                        flatMap(createdUser -> outboxRepository.save(createOutbox(createdUser.getId(), login,"Accounts. Создан новый пользователь"))
+                switchIfEmpty(Mono.defer(() -> userRepository.save(createUser(login, login, LocalDate.of(2001, 1, 1))).
+                        flatMap(createdUser -> outboxRepository.save(createOutbox(createdUser.getId(), login, "Accounts. Создан новый пользователь"))
                                 .thenReturn(createdUser))));
     }
 
@@ -147,7 +156,7 @@ public class AccountsServiceImpl implements AccountsService {
         User user = new User();
         user.setLogin(login);
         user.setName(name);
-        user.setBirthdate( birthdate);
+        user.setBirthdate(birthdate);
         return user;
     }
 

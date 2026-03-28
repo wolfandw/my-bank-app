@@ -1,7 +1,7 @@
 package io.github.wolfandw.cash.service;
 
-import io.github.wolfandw.chassis.dto.AccountPageDto;
 import io.github.wolfandw.chassis.dto.CashAction;
+import io.github.wolfandw.chassis.dto.OperationResultDto;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -13,9 +13,10 @@ public interface CashService {
     /**
      * Изменить остаток наличности.
      *
+     * @param login логин пользователя
      * @param value сумма изменения
      * @param action действие (снять, положить)
-     * @return DTO-представление аккаунта
+     * @return DTO-модель результата операции
      */
-    Mono<AccountPageDto> editCash(BigDecimal value, CashAction action);
+    Mono<OperationResultDto> changeCash(String login, BigDecimal value, CashAction action);
 }

@@ -1,11 +1,14 @@
 package io.github.wolfandw.chassis.dto;
 
+import java.util.UUID;
+
 /**
  * DTO-представление операции с аккаунтом.
  *
- * @param accepted признак успешно выполненной операции
- * @param error ошибка, если есть, иначе {@code null}
- * @param info информация, если есть, иначе {@code null}
+ * @param userId идентификатор пользователя
+ * @param login логин пользователя
+ * @param accepted признак успешно выполненной операции или отказа
+ * @param message сообщение операции (ошибка или информация, в зависимости от {@param accepted}
  */
-public record OperationResultDto(boolean accepted, String error, String info) {
+public record OperationResultDto(UUID userId, String login, boolean accepted, String message) {
 }

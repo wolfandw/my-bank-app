@@ -26,6 +26,8 @@ public class FrontUiController {
     private static final String ATTRIBUTE_ACCOUNT = "account";
     private static final String ATTRIBUTE_ERRORS = "errors";
     private static final String ATTRIBUTE_INFO = "info";
+    private static final String PARAMETER_ERROR = "error";
+    private static final String PARAMETER_INFO = "info";
 
     private final FrontUiService accountsService;
 
@@ -52,16 +54,17 @@ public class FrontUiController {
      * @return шаблон и модель аккаунта текущего пользователя
      */
     @GetMapping("/account")
-    public Mono<Rendering> getAccount(@RequestParam(required = false) String error,
-                                      @RequestParam(required = false) String info) {
+    public Mono<Rendering> getAccount(@RequestParam(value = PARAMETER_ERROR, required = false) String error,
+                                      @RequestParam(value = PARAMETER_INFO, required = false) String info) {
         LOG.info("Пользователь -> Front UI. Получен запрос на получение данных аккаунта");
-        Mono<AccountDto> accountDto = accountsService.getAccount();
-        return accountDto.map(accountDtoMono -> Rendering.view(TEMPLATE_MAIN)
+        Mono<AccountDto> accountDtoMono = accountsService.getAccount();
+        return accountDtoMono.map(accountDto ->
+                Rendering.view(TEMPLATE_MAIN)
                 .modelAttribute(ATTRIBUTE_ACCOUNT, accountDtoMono)
                 .modelAttribute(ATTRIBUTE_ERRORS, error == null ? null : List.of(error))
                 .modelAttribute(ATTRIBUTE_INFO, info)
                 .build()
-        );
+       );
     }
 
     /**
@@ -104,10 +107,6 @@ public class FrontUiController {
     }
 
     private String getRedirect(OperationResultDto result) {
-        if (result.accepted()) {
-            return "redirect:/account?info=" + URLEncoder.encode(result.info(), StandardCharsets.UTF_8);
-        } else {
-            return "redirect:/account?error=" + URLEncoder.encode(result.error(), StandardCharsets.UTF_8);
-        }
+        return "redirect:/account?" + (result.accepted() ? PARAMETER_INFO : PARAMETER_ERROR) + "=" + URLEncoder.encode(result.message(), StandardCharsets.UTF_8);
     }
 }
