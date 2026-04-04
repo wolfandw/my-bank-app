@@ -88,6 +88,24 @@ public class Account {
     }
 
     /**
+     * Возвращает версию.
+     *
+     * @return версия
+     */
+    public Long getVersion() {
+        return version;
+    }
+
+    /**
+     * Устанавливает версию.
+     *
+     * @param version версия
+     */
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    /**
      * Возвращает дату создания.
      *
      * @return дата создания
@@ -121,23 +139,5 @@ public class Account {
      */
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    /**
-     * Возвращает версию.
-     *
-     * @return версия
-     */
-    public Long getVersion() {
-        return version;
-    }
-
-    /**
-     * Устанавливает версию.
-     *
-     * @param version версия
-     */
-    public void setVersion(Long version) {
-        this.version = version;
     }
 }

@@ -1,13 +1,13 @@
 package io.github.wolfandw.accounts.controller;
 
 import io.github.wolfandw.accounts.service.UserService;
-import io.github.wolfandw.chassis.configuration.Constants;
-import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.ChangeUserDataRequestDto;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
-import io.github.wolfandw.chassis.dto.UserDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,11 +35,14 @@ public class UserController {
      * Изменяет имя и дату рождения.
      *
      * @param request параметры запроса
+     * @param jwt jwt токен
      * @return DTO-модель результата операции
      */
     @PostMapping("/api/account")
-    public Mono<OperationResultDto> changeUserData(@ModelAttribute ChangeUserDataRequestDto request) {
-        LOG.info("Gateway -> Accounts. Получен запрос на изменение персональных данных");
-       return userService.changeUserData(Constants.JWT_USER_STUB, request.getName(), request.getBirthdate());
+    @PreAuthorize("hasRole('USER') and hasRole('ACCOUNTS_WRITE')")
+    public Mono<OperationResultDto> changeUserData(@ModelAttribute ChangeUserDataRequestDto request,
+                                                   @AuthenticationPrincipal Jwt jwt) {
+        LOG.debug("Gateway -> Accounts. Получен запрос на изменение персональных данных");
+        return userService.changeUserData(jwt.getClaim("preferred_username"), request.getName(), request.getBirthdate());
     }
 }

@@ -12,7 +12,7 @@
     <artifactId>frontui</artifactId>
 
     <name>frontui</name>
-    <description>frontui</description>
+    <description>front-ui</description>
 
     <dependencies>
         <dependency>

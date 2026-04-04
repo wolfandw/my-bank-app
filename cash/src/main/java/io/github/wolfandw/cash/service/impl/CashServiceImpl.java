@@ -1,13 +1,14 @@
 package io.github.wolfandw.cash.service.impl;
 
-import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.cash.service.CashService;
+import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -32,9 +33,9 @@ public class CashServiceImpl implements CashService {
     private static final String VALUE_PARAMETER = "value";
     private static final String ACTION_PARAMETER = "action";
 
-    private final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
+    private static final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
 
-    private final WebClient loadBalancedWebClient;
+    private final WebClient webClient;
     private final OutboxRepository outboxRepository;
 
     @Value("${accounts.host}")
@@ -46,19 +47,20 @@ public class CashServiceImpl implements CashService {
     /**
      * Создает сервис.
      *
-     * @param loadBalancedWebClient веб-клиент
+     * @param webClient веб-клиент
      * @param outboxRepository репозиторий сообщений
      */
-    public CashServiceImpl(WebClient loadBalancedWebClient, OutboxRepository outboxRepository) {
-        this.loadBalancedWebClient = loadBalancedWebClient;
+    public CashServiceImpl(WebClient webClient, OutboxRepository outboxRepository) {
+        this.webClient = webClient;
         this.outboxRepository = outboxRepository;
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('USER') and hasRole('CASH_WRITE')")
     public Mono<OperationResultDto> changeCash(String login, BigDecimal value, CashAction action) {
-        LOG.info(createMessage(login, "Cash -> Accounts. Отправка запроса на изменение наличных"));
-        return loadBalancedWebClient.post()
+        LOG.debug(createMessage(login, "Cash -> Accounts. Отправка запроса на изменение наличных"));
+        return webClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, login, value, action))
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)

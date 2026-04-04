@@ -3,7 +3,10 @@ package io.github.wolfandw.notifications.controller;
 import io.github.wolfandw.notifications.service.NotificationsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -29,13 +32,17 @@ public class NotificationsController {
     /**
      * Осуществляет перевод получателю.
      *
+     * @param outboxId ижентификатор сообщения
+     * @param userId идентификатор пользователя
+     * @param message сообщение
      * @return нотификация текущего пользователя
      */
     @PostMapping("/api/notifications")
+    @PreAuthorize("hasRole('NOTIFICATIONS_SERVICE_CLIENT')")
     public Mono<UUID> requestNotification(@RequestParam(value = "outboxId", required = false) UUID outboxId,
                                           @RequestParam(value = "userId", required = false) UUID userId,
                                           @RequestParam(value = "message", required = false) String message) {
-        LOG.info("Outbox -> Notifications. Получен запрос на нотификацию");
+        LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию");
         return notificationsService.requestNotification(outboxId, userId, message);
     }
 }

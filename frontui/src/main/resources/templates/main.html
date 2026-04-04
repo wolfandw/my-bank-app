@@ -9,11 +9,10 @@
 </head>
 
 <body class="bg-light">
-    <div class="alert alert-danger vstack" role="alert" th:if="${errors!=null}" th:each="error : ${errors}">
+    <div class="alert alert-danger vstack alert-dismissible fade show" role="alert" th:if="${errors!=null}" th:each="error : ${errors}">
         <span th:text="${error}"/>
     </div>
-    <div class="alert alert-success" role="alert" th:if="${info!=null}" th:text="${info}"/>
-<!--    <div class="container p-2" th:if="${account!=null}">-->
+    <div class="alert alert-success  alert-dismissible fade show" role="alert" th:if="${info!=null}" th:text="${info}"/>
     <div class="container p-2">
         <div class="row p-2">
             <div class="col">
@@ -21,10 +20,12 @@
                     <h2>
                         <span class="badge text-bg-info text-white">Банк</span>
                     </h2>
+                    <span class="badge text-bg-success justify-content-end" th:text="${account.user().login()}" th:if="${account!=null}"></span>
+                    <a href="/logout" class="btn btn-danger" th:if="${account!=null}">Выйти</a>
                 </div>
             </div>
         </div>
-        <div class="row p-2">
+        <div class="row p-2" th:if="${account!=null}">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -58,7 +59,7 @@
                 </div>
             </div>
         </div>
-        <div class="row p-2">
+        <div class="row p-2" th:if="${account!=null}">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -81,7 +82,7 @@
                 </div>
             </div>
         </div>
-        <div class="row p-2">
+        <div class="row p-2" th:if="${account!=null}">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -94,8 +95,8 @@
                                     <label for="to_account">Кому</label>
                                 </h6>
                                 <p>
-                                    <select class="form-select" id="to_account" name="login" required>
-                                        <option th:each="user : ${account.users()}" th:value="${user.login}" th:text="${user.name}"/>
+                                    <select class="form-select" id="to_account" name="recipient" required>
+                                        <option th:each="recipient : ${account.users()}" th:value="${recipient.login}" th:text="${recipient.name}"/>
                                     </select>
                                 </p>
                             </div>

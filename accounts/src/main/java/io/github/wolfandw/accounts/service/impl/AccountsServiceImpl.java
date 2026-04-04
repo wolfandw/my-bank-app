@@ -5,11 +5,15 @@ import io.github.wolfandw.accounts.model.User;
 import io.github.wolfandw.accounts.repository.AccountRepository;
 import io.github.wolfandw.accounts.repository.UserRepository;
 import io.github.wolfandw.accounts.service.AccountsService;
-import io.github.wolfandw.chassis.dto.*;
+import io.github.wolfandw.chassis.dto.AccountDto;
+import io.github.wolfandw.chassis.dto.CashAction;
+import io.github.wolfandw.chassis.dto.OperationResultDto;
+import io.github.wolfandw.chassis.dto.UserDto;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -49,8 +53,9 @@ public class AccountsServiceImpl implements AccountsService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('USER') and hasRole('CASH_WRITE')")
     public Mono<AccountDto> getAccount(String login) {
-        LOG.info(createMessage(login, "Accounts. Обработка запроса на получение данных счета"));
+        LOG.debug(createMessage(login, "Accounts. Обработка запроса на получение данных счета"));
         Mono<AccountDto> accountDtoMono = getOrCreateUser(login).flatMap(user -> getOrCreateAccount(user).
                 map(account -> new AccountDto(account.getId(), mapToUserDto(user), account.getBalance(), new ArrayList<>())));
         Mono<List<UserDto>> userDtoListMono = userRepository.findAllByLoginNot(login).map(this::mapToUserDto).collectList();
@@ -59,20 +64,18 @@ public class AccountsServiceImpl implements AccountsService {
             List<UserDto> userDtoList = tuple.getT2();
             accountDto.users().addAll(userDtoList);
             return accountDto;
-        }).map(acc -> {
-            LOG.info(String.valueOf(acc.id()));
-            return acc;
         })
-                .onErrorResume(e -> {
-                    LOG.error(e.getMessage());
-                    return Mono.empty();
-                });
+        .onErrorResume(e -> {
+            LOG.error(e.getMessage());
+            return Mono.empty();
+        });
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('CASH_WRITE') and hasRole('ACCOUNTS_SERVICE_CLIENT')")
     public Mono<OperationResultDto> changeCash(String login, BigDecimal value, CashAction action) {
-        LOG.info(createMessage(login, "Accounts. Обработка запроса на изменение состояния счета"));
+        LOG.debug(createMessage(login, "Accounts. Обработка запроса на изменение состояния счета"));
         return userRepository.findByLogin(login).flatMap(user -> accountRepository.findByUserId(user.getId()).flatMap(
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
@@ -104,8 +107,9 @@ public class AccountsServiceImpl implements AccountsService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('TRANSFER_WRITE') and hasRole('ACCOUNTS_SERVICE_CLIENT')")
     public Mono<OperationResultDto> transferCash(String login, BigDecimal value, String recipient) {
-        LOG.info(createMessage(login, "Accounts. Обработка запроса на перевод денежных средств со счета"));
+        LOG.debug(createMessage(login, "Accounts. Обработка запроса на перевод денежных средств со счета"));
         return userRepository.findByLogin(login).flatMap(user -> accountRepository.findByUserId(user.getId()).flatMap(
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
@@ -115,7 +119,7 @@ public class AccountsServiceImpl implements AccountsService {
                     account.setBalance(currentBalance.subtract(value));
                     return userRepository.findByLogin(recipient).flatMap(userRecipient -> accountRepository.findByUserId(userRecipient.getId()).flatMap(
                             recipientAccount -> {
-                                BigDecimal recipientBalance = account.getBalance();
+                                BigDecimal recipientBalance = recipientAccount.getBalance();
                                 recipientAccount.setBalance(recipientBalance.add(value));
                                 return accountRepository.save(recipientAccount).
                                         flatMap(changedRecipientAccount -> accountRepository.save(account)).
@@ -125,11 +129,11 @@ public class AccountsServiceImpl implements AccountsService {
                                                 "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient)));
                             }));
                 }
-        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(new UUID(0, 0), login, false, "Accounts. Не выполнить перевод со счета"))));
+        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(new UUID(0, 0), login, false, "Accounts. удалось выполнить перевод со счета"))));
     }
 
     private Mono<User> getOrCreateUser(String login) {
-        LOG.info(createMessage(login, "Accounts. Получение или создание пользователя"));
+        LOG.debug(createMessage(login, "Accounts. Получение или создание пользователя"));
         return userRepository.findByLogin(login).
                 switchIfEmpty(Mono.defer(() -> userRepository.save(createUser(login, login, LocalDate.of(2001, 1, 1))).
                         flatMap(createdUser -> outboxRepository.save(createOutbox(createdUser.getId(), login, "Accounts. Создан новый пользователь"))
@@ -139,7 +143,7 @@ public class AccountsServiceImpl implements AccountsService {
     private Mono<Account> getOrCreateAccount(User user) {
         String login = user.getLogin();
         UUID userId = user.getId();
-        LOG.info(createMessage(login, "Accounts. Получение или создание счета пользователя"));
+        LOG.debug(createMessage(login, "Accounts. Получение или создание счета пользователя"));
         return accountRepository.findByUserId(userId).
                 switchIfEmpty(Mono.defer(() -> accountRepository.save(createAccount(userId)).
                         flatMap(createdAccount -> outboxRepository.save(createOutbox(userId,

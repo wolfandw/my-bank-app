@@ -2,7 +2,7 @@ package io.github.wolfandw.chassis.service.impl;
 
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
-import io.github.wolfandw.chassis.service.OutboxService;
+import io.github.wolfandw.chassis.service.OutboxSchedulerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,10 +17,10 @@ import java.net.URI;
 import java.util.UUID;
 
 /**
- * Реализация {@link OutboxService}.
+ * Реализация {@link OutboxSchedulerService}.
  */
-public class OutboxServiceImpl implements OutboxService {
-    private static final Logger LOG = LoggerFactory.getLogger(OutboxServiceImpl.class);
+public class OutboxSchedulerServiceImpl implements OutboxSchedulerService {
+    private static final Logger LOG = LoggerFactory.getLogger(OutboxSchedulerServiceImpl.class);
 
     private static final String SCHEME = "http";
     private static final String NOTIFY_PATH = "/api/notifications";
@@ -28,9 +28,9 @@ public class OutboxServiceImpl implements OutboxService {
     private static final String USER_ID_PARAMETER = "userId";
     private static final String MESSAGE_PARAMETER = "message";
 
-    private final String NOTIFICATIONS_API_UNAVAILABLE = "Сервис нотификаций недоступен: %s";
+    private static final String NOTIFICATIONS_API_UNAVAILABLE = "Сервис нотификаций недоступен: %s";
 
-    private final WebClient loadBalancedWebClient;
+    private final WebClient scheduleWebClient;
     private final OutboxRepository outboxRepository;
 
     @Value("${notifications.host}")
@@ -42,29 +42,39 @@ public class OutboxServiceImpl implements OutboxService {
     /**
      * Создает сервис.
      *
-     * @param loadBalancedWebClient load-balanced веб-клиент
+     * @param scheduleWebClient веб-клиент
      * @param outboxRepository репозиторий сообщений
      */
-    public OutboxServiceImpl(WebClient loadBalancedWebClient, OutboxRepository outboxRepository) {
-        this.loadBalancedWebClient = loadBalancedWebClient;
+    public OutboxSchedulerServiceImpl(WebClient scheduleWebClient, OutboxRepository outboxRepository) {
+        this.scheduleWebClient = scheduleWebClient;
         this.outboxRepository = outboxRepository;
     }
 
     @Scheduled(fixedDelayString = "PT3s")
-    @Transactional
     public Flux<Outbox> sendUnsentOutbox() {
-        return outboxRepository.findAllBySent(false).flatMap(this::sendOutbox);
+        return processSendingUnsentOutbox();
     }
 
     @Scheduled(fixedDelayString = "PT10s")
-    @Transactional
     public Mono<Void> deleteSentOutbox() {
+        return processDeletingSentOutbox();
+    }
+
+    @Override
+    @Transactional
+    public Flux<Outbox> processSendingUnsentOutbox() {
+        return outboxRepository.findAllBySent(false).flatMap(this::sendOutbox);
+    }
+
+    @Override
+    @Transactional
+    public Mono<Void> processDeletingSentOutbox() {
         return outboxRepository.deleteAllBySent(true);
     }
 
     private Mono<Outbox> sendOutbox(Outbox outbox) {
-        LOG.info("Outbox -> Notifications. Отправка запроса на нотификацию " + outbox.getMessage());
-        return loadBalancedWebClient.post()
+        LOG.debug("Outbox -> Notifications processor. Отправка запроса на нотификацию " + outbox.getMessage());
+        return scheduleWebClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, outbox.getId(), outbox.getUserId(), outbox.getMessage()))
                 .retrieve()
                 .bodyToMono(UUID.class)
@@ -77,7 +87,7 @@ public class OutboxServiceImpl implements OutboxService {
     }
 
     private Mono<Outbox> markSent(UUID sentOutboxId) {
-        LOG.info("Notifications -> Outbox. Запрос на нотификацию принят");
+        LOG.debug("Notifications processor -> Outbox. Запрос на нотификацию принят");
         return outboxRepository.findById(sentOutboxId).flatMap(outbox -> {
             outbox.setSent(true);
             return outboxRepository.save(outbox);

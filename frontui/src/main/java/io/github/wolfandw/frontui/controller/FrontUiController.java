@@ -4,6 +4,7 @@ import io.github.wolfandw.chassis.dto.*;
 import io.github.wolfandw.frontui.service.FrontUiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -22,6 +23,7 @@ import java.util.List;
 @Controller
 public class FrontUiController {
     private static final Logger LOG = LoggerFactory.getLogger(FrontUiController.class);
+
     private static final String TEMPLATE_MAIN = "main";
     private static final String ATTRIBUTE_ACCOUNT = "account";
     private static final String ATTRIBUTE_ERRORS = "errors";
@@ -51,12 +53,15 @@ public class FrontUiController {
     /**
      * Возвращает аккаунт текущего пользователя.
      *
+     * @param error ошибка
+     * @param info информация
      * @return шаблон и модель аккаунта текущего пользователя
      */
     @GetMapping("/account")
+    @PreAuthorize("isAuthenticated()")
     public Mono<Rendering> getAccount(@RequestParam(value = PARAMETER_ERROR, required = false) String error,
                                       @RequestParam(value = PARAMETER_INFO, required = false) String info) {
-        LOG.info("Пользователь -> Front UI. Получен запрос на получение данных аккаунта");
+        LOG.debug("Пользователь -> Front UI. Получен запрос на получение данных аккаунта");
         Mono<AccountDto> accountDtoMono = accountsService.getAccount();
         return accountDtoMono.map(accountDto ->
                 Rendering.view(TEMPLATE_MAIN)
@@ -64,7 +69,7 @@ public class FrontUiController {
                 .modelAttribute(ATTRIBUTE_ERRORS, error == null ? null : List.of(error))
                 .modelAttribute(ATTRIBUTE_INFO, info)
                 .build()
-       );
+        );
     }
 
     /**
@@ -74,8 +79,9 @@ public class FrontUiController {
      * @return шаблон текущего пользователя
      */
     @PostMapping("/account")
+    @PreAuthorize("isAuthenticated()")
     public Mono<String> changeUserData(@ModelAttribute ChangeUserDataRequestDto request) {
-        LOG.info("Пользователь -> Front UI. Получен запрос на изменение персональных данных");
+        LOG.debug("Пользователь -> Front UI. Получен запрос на изменение персональных данных");
         Mono<OperationResultDto> accountPageDtoMono = accountsService.changeUserData(request.getName(), request.getBirthdate());
         return accountPageDtoMono.map(this::getRedirect);
     }
@@ -87,8 +93,9 @@ public class FrontUiController {
      * @return шаблон аккаунта текущего пользователя
      */
     @PostMapping("/cash")
+    @PreAuthorize("isAuthenticated()")
     public Mono<String> changeCash(@ModelAttribute ChangeCashRequestDto request) {
-        LOG.info("Пользователь -> Front UI. Получен запрос на изменение наличных");
+        LOG.debug("Пользователь -> Front UI. Получен запрос на изменение наличных");
         Mono<OperationResultDto> accountPageDtoMono = accountsService.changeCash(request.getValue(), request.getAction());
         return accountPageDtoMono.map(this::getRedirect);
     }
@@ -100,9 +107,10 @@ public class FrontUiController {
      * @return шаблон и модель аккаунта текущего пользователя
      */
     @PostMapping("/transfer")
+    @PreAuthorize("isAuthenticated()")
     public Mono<String> transferCash(@ModelAttribute TransferCashRequestDto request) {
-        LOG.info("Пользователь -> Front UI. Получен запрос на перевод наличных");
-        Mono<OperationResultDto> accountPageDtoMono = accountsService.transferCash(request.getValue(), request.getLogin());
+        LOG.debug("Пользователь -> Front UI. Получен запрос на перевод наличных");
+        Mono<OperationResultDto> accountPageDtoMono = accountsService.transferCash(request.getValue(), request.getRecipient());
         return accountPageDtoMono.map(this::getRedirect);
     }
 

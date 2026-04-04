@@ -7,6 +7,7 @@ import io.github.wolfandw.transfer.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,9 +32,9 @@ public class TransferServiceImpl implements TransferService {
     private static final String VALUE_PARAMETER = "value";
     private static final String RECIPIENT_PARAMETER = "recipient";
 
-    private final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
+    private static final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
 
-    private final WebClient loadBalancedWebClient;
+    private final WebClient webClient;
     private final OutboxRepository outboxRepository;
 
     @Value("${accounts.host}")
@@ -45,19 +46,20 @@ public class TransferServiceImpl implements TransferService {
     /**
      * Создает сервис.
      *
-     * @param loadBalancedWebClient веб-клиент
+     * @param webClient веб-клиент
      * @param outboxRepository репозиторий сообщений
      */
-    public TransferServiceImpl(WebClient loadBalancedWebClient, OutboxRepository outboxRepository) {
-        this.loadBalancedWebClient = loadBalancedWebClient;
+    public TransferServiceImpl(WebClient webClient, OutboxRepository outboxRepository) {
+        this.webClient = webClient;
         this.outboxRepository = outboxRepository;
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('USER') and hasRole('TRANSFER_WRITE')")
     public Mono<OperationResultDto> transferCash(String login, BigDecimal value, String recipient) {
-        LOG.info("Transfer -> Accounts. Отправка запроса на перевод наличных");
-        return loadBalancedWebClient.post()
+        LOG.debug("Transfer -> Accounts. Отправка запроса на перевод наличных");
+        return webClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, value, login, recipient))
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)

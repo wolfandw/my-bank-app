@@ -1,14 +1,11 @@
 package io.github.wolfandw.accounts.service;
 
 import io.github.wolfandw.chassis.dto.AccountDto;
-import io.github.wolfandw.chassis.dto.AccountPageDto;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
 
 /**
  * Сервис для работы с аккаунтами.

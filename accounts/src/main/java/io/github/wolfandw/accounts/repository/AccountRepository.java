@@ -1,7 +1,6 @@
 package io.github.wolfandw.accounts.repository;
 
 import io.github.wolfandw.accounts.model.Account;
-import io.github.wolfandw.chassis.dto.AccountDto;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Mono;
 
@@ -12,7 +11,8 @@ import java.util.UUID;
  */
 public interface AccountRepository extends R2dbcRepository<Account, UUID> {
     /**
-     * Возвращает счет пользователя по идентификатору пользователя
+     * Возвращает счет пользователя по идентификатору пользователя.
+     *
      * @param userId идентификатор пользователя
      * @return счет пользователя
      */

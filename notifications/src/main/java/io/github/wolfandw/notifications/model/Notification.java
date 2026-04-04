@@ -7,6 +7,9 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Класс модели нотификации.
+ */
 @Table(name = "notifications")
 public class Notification {
     @Id

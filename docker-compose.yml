@@ -69,19 +69,19 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U ${NOTIFICATIONS_DB_USERNAME} -d ${NOTIFICATIONS_DB_NAME}" ]
       interval: 5s
 
-#  keycloak:
-#    image: quay.io/keycloak/keycloak:26.3.1
-#    container_name: keycloak
-#    command: start-dev --import-realm --http-port=8082
-#    environment:
-#      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-#      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-#    volumes:
-#      - .:/opt/keycloak/data/import
-#    ports:
-#      - "8082:8082"
-#    healthcheck:
-#      test: [ "CMD", "curl", "-f", "http://keycloak:8082/health/ready" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.1
+    container_name: keycloak
+    command: start-dev --import-realm --http-port=8082
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    volumes:
+      - .:/opt/keycloak/data/import
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://keycloak:8082/health/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

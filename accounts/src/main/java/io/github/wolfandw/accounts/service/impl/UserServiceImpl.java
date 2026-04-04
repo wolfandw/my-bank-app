@@ -8,6 +8,7 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -39,8 +40,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('USER') and hasRole('ACCOUNTS_WRITE')")
     public Mono<OperationResultDto> changeUserData(String login, String name, LocalDate birthdate) {
-        LOG.info(createMessage(login, "Accounts. Обработка запроса на изменение данных пользователя"));
+        LOG.debug(createMessage(login, "Accounts. Обработка запроса на изменение данных пользователя"));
         return userRepository.findByLogin(login).flatMap(user -> {
             if (LocalDate.now().getYear() - birthdate.getYear() < 18) {
                 return Mono.just(new OperationResultDto(user.getId(),
