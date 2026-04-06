@@ -1,6 +1,6 @@
 package io.github.wolfandw.frontui;
 
-import io.github.wolfandw.chassis.configuration.OutboxSchedulerAutoConfiguration;
+import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,7 +18,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 		R2dbcAutoConfiguration.class,
 		DataR2dbcRepositoriesAutoConfiguration.class,
 		LiquibaseAutoConfiguration.class,
-		OutboxSchedulerAutoConfiguration.class,
+		OutboxProcessorAutoConfiguration.class,
 		SecurityWebFilterConfiguration.class
 })
 @EnableDiscoveryClient

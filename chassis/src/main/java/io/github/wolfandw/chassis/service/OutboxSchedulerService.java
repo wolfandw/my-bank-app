@@ -5,16 +5,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Сервис исходящих сообщений.
+ * Планировщик исходящих сообщений.
  */
 public interface OutboxSchedulerService {
     /**
-     * Осуществляет отправку не отправленных сообщений в сервис нотификаций.
+     * Планирует отправку не отправленных сообщений в сервис нотификаций.
      */
-    Flux<Outbox> processSendingUnsentOutbox() ;
+    Flux<Outbox> scheduleSendUnsentOutbox() ;
 
     /**
-     * Осуществляет удаление отправленных сообщений.
+     * Планирует удаление отправленных сообщений.
      */
-    Mono<Void> processDeletingSentOutbox();
+    Mono<Void> scheduleDeleteSentOutbox();
 }

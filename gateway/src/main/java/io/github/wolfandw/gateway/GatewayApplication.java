@@ -1,5 +1,7 @@
 package io.github.wolfandw.gateway;
 
+import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
+import io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration;
@@ -8,13 +10,15 @@ import org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfigurati
 import org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration;
 
 /**
- * Проложение Gateway.
+ * Приложение Gateway.
  */
 @SpringBootApplication(exclude = {
 		DataSourceAutoConfiguration.class,
 		R2dbcAutoConfiguration.class,
 		DataR2dbcRepositoriesAutoConfiguration.class,
-		LiquibaseAutoConfiguration.class
+		LiquibaseAutoConfiguration.class,
+		OutboxProcessorAutoConfiguration.class,
+		SecurityWebFilterConfiguration.class
 })
 public class GatewayApplication {
     /**

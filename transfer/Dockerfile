@@ -1,5 +1,5 @@
 FROM amazoncorretto:21-alpine-jdk
 WORKDIR /app
-COPY frontui/target/*.jar app.jar
-EXPOSE 8089
+COPY transfer/target/*.jar app.jar
+EXPOSE 8085
 ENTRYPOINT ["java", "-jar", "app.jar"]

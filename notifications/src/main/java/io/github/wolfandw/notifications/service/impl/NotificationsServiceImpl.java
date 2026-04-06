@@ -44,7 +44,12 @@ public class NotificationsServiceImpl implements NotificationsService {
             savedNotification.setSent(true);
             return notificationsRepository.save(savedNotification).map(sentNotification -> {
                 LOG.debug("Notifications. Уведомление отправлено: '{}'", savedNotification.getMessage());
-                LOG.info(savedNotification.getMessage()); // собственно отправка уведомления
+
+                // собственно отправка уведомления
+                System.out.println("****************");
+                System.out.println("* Notification * - Уведомление отправлено: " + savedNotification.getMessage());
+                System.out.println("****************");
+
                 return notificationsRepository.delete(sentNotification);
             }).thenReturn(outboxId);
         });

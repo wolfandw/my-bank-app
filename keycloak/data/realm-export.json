@@ -1,0 +1,237 @@
+{
+  "realm": "my-bank-app-realm",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "editUsernameAllowed": false,
+  "verifyEmail": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "loginWithEmailAllowed": false,
+  "duplicateEmailsAllowed": false,
+
+  "defaultRoles": [
+    "TRANSFER_WRITE",
+    "CASH_WRITE",
+    "ACCOUNTS_WRITE",
+    "USER"
+  ],
+
+  "roles": {
+    "realm": [
+      {
+        "name": "CASH_SERVICE_CLIENT"
+      },
+      {
+        "name": "CASH_WRITE"
+      },
+      {
+        "name": "ACCOUNTS_SERVICE_CLIENT"
+      },
+      {
+        "name": "ACCOUNTS_WRITE"
+      },
+      {
+        "name": "TRANSFER_WRITE"
+      },
+      {
+        "name": "ADMIN"
+      },
+      {
+        "name": "NOTIFICATIONS_SERVICE_CLIENT"
+      },
+      {
+        "name": "TRANSFER_SERVICE_CLIENT"
+      },
+      {
+        "name": "USER"
+      }
+    ]
+  },
+
+  "users": [
+    {
+      "username": "user",
+      "enabled": true,
+      "email": "user@wolfandw.github.io",
+      "firstName": "User",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "user",
+          "value": "user",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USER",
+        "ACCOUNTS_WRITE",
+        "TRANSFER_WRITE",
+        "CASH_WRITE"
+      ]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "customer@wolfandw.github.io",
+      "firstName": "Admin",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "admin",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USER",
+        "ADMIN",
+        "ACCOUNTS_WRITE",
+        "TRANSFER_WRITE",
+        "CASH_WRITE"
+      ]
+    },
+    {
+      "username": "service-account-accounts",
+      "enabled": true,
+      "serviceAccountClientId": "accounts",
+      "realmRoles": [
+        "NOTIFICATIONS_SERVICE_CLIENT"
+      ]
+    },
+    {
+      "username": "service-account-cash",
+      "enabled": true,
+      "serviceAccountClientId": "cash",
+      "realmRoles": [
+        "CASH_WRITE",
+        "ACCOUNTS_SERVICE_CLIENT",
+        "NOTIFICATIONS_SERVICE_CLIENT"
+      ]
+    },
+    {
+      "username": "service-account-transfer",
+      "enabled": true,
+      "serviceAccountClientId": "transfer",
+      "realmRoles": [
+        "ACCOUNTS_SERVICE_CLIENT",
+        "TRANSFER_WRITE",
+        "NOTIFICATIONS_SERVICE_CLIENT"
+      ]
+    }
+  ],
+
+  "scopeMappings": [
+    {
+      "client": "front-ui",
+      "roles": [
+        "ACCOUNTS_SERVICE_CLIENT",
+        "CASH_SERVICE_CLIENT",
+        "TRANSFER_SERVICE_CLIENT"
+      ]
+    },
+    {
+      "client": "accounts",
+      "roles": [
+        "NOTIFICATIONS_SERVICE_CLIENT"
+      ]
+    },
+    {
+      "client": "cash",
+      "roles": [
+        "ACCOUNTS_SERVICE_CLIENT",
+        "NOTIFICATIONS_SERVICE_CLIENT"
+      ]
+    },
+    {
+      "client": "transfer",
+      "roles": [
+        "ACCOUNTS_SERVICE_CLIENT",
+        "NOTIFICATIONS_SERVICE_CLIENT"
+      ]
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "front-ui",
+      "baseUrl": "http://localhost:8089",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "5eOiAHGLM8KvD2xxMRcCeIogKaFtnN3P",
+      "redirectUris": [
+        "http://localhost:8089/*",
+        "http://localhost:8089/login/oauth2/code/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8089"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "standard.token.exchange.enabled": "false",
+        "frontchannel.logout.url": "http://localhost:8089/logout",
+        "frontchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "http://localhost:8089/*",
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "backchannel.logout.session.required": "true",
+        "display.on.consent.screen": "false"
+      },
+
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "gateway",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "27gcWzuNZoOpmR3SygtMFjXr3apPjhVW",
+      "standardFlowEnabled": true,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "accounts",
+      "enabled": true,
+      "secret": "OJ59Qho7qss9aAAFHShOOWiiIVo3wuE7",
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "cash",
+      "enabled": true,
+      "secret": "Isq0cW1jwx9GIQypRuCX6CEozSPG3xT8",
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "notifications",
+      "enabled": true,
+      "secret": "dYULgKXgzByDWxcH8SQ5PIQ9CGWLgMZ0",
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "transfer",
+      "enabled": true,
+      "secret": "0HkSVUblZIWjdaswozGgOSwD9LpPYFDb",
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+
+  "browserFlow": "browser",
+  "registrationFlow": "registration"
+}

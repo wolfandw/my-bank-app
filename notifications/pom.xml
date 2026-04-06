@@ -13,6 +13,14 @@
     <name>notifications</name>
     <description>notifications</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.wolfandw</groupId>
+            <artifactId>chassis</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
