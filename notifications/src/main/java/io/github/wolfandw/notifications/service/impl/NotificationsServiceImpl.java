@@ -33,7 +33,7 @@ public class NotificationsServiceImpl implements NotificationsService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('NOTIFICATIONS_SERVICE_CLIENT')")
-    public Mono<UUID> requestNotification(UUID outboxId, UUID userId, String message) {
+    public Mono<String> requestNotification(UUID outboxId, UUID userId, String message) {
         LOG.debug("Notifications. Обрабатывается запрос на отправку уведомления");
         Notification notification = new Notification();
         notification.setUserId(userId);
@@ -51,7 +51,7 @@ public class NotificationsServiceImpl implements NotificationsService {
                 System.out.println("****************");
 
                 return notificationsRepository.delete(sentNotification);
-            }).thenReturn(outboxId);
+            }).thenReturn(outboxId.toString());
         });
     }
 }

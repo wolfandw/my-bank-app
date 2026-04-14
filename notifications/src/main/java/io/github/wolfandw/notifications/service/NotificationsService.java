@@ -16,5 +16,5 @@ public interface NotificationsService {
      * @param message сообщение
      * @return идентификатор и признак успешной регистрации сообщения
      */
-    Mono<UUID> requestNotification(UUID outboxId, UUID userId, String message);
+    Mono<String> requestNotification(UUID outboxId, UUID userId, String message);
 }

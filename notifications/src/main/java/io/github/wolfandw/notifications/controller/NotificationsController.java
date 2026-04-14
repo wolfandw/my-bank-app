@@ -39,7 +39,7 @@ public class NotificationsController {
      */
     @PostMapping("/api/notifications")
     @PreAuthorize("hasRole('NOTIFICATIONS_SERVICE_CLIENT')")
-    public Mono<UUID> requestNotification(@RequestParam(value = "outboxId", required = false) UUID outboxId,
+    public Mono<String> requestNotification(@RequestParam(value = "outboxId", required = false) UUID outboxId,
                                           @RequestParam(value = "userId", required = false) UUID userId,
                                           @RequestParam(value = "message", required = false) String message) {
         LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию");

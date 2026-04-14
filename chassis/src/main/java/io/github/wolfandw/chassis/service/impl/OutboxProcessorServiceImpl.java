@@ -63,7 +63,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
         return scheduleWebClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, outbox.getId(), outbox.getUserId(), outbox.getMessage()))
                 .retrieve()
-                .bodyToMono(UUID.class)
+                .bodyToMono(String.class)
                 .flatMap(this::markSent)
                 .onErrorResume(e -> {
                     String errorMessage = NOTIFICATIONS_API_UNAVAILABLE.formatted(e.getMessage());
@@ -72,9 +72,9 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
                 });
     }
 
-    private Mono<Outbox> markSent(UUID sentOutboxId) {
+    private Mono<Outbox> markSent(String sentOutboxId) {
         LOG.debug("Notifications processor -> Outbox. Запрос на нотификацию принят");
-        return outboxRepository.findById(sentOutboxId).flatMap(outbox -> {
+        return outboxRepository.findById(UUID.fromString(sentOutboxId)).flatMap(outbox -> {
             outbox.setSent(true);
             return outboxRepository.save(outbox);
         });
