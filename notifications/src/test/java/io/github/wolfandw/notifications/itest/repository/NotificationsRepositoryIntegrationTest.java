@@ -1,6 +1,6 @@
 package io.github.wolfandw.notifications.itest.repository;
 
-import io.github.wolfandw.notifications.itest.BaseNotificationsTest;
+import io.github.wolfandw.notifications.itest.BaseNotificationsIntegrationTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Интеграционные тесты репозитория уведомлений.
  */
-public class NotificationsRepositoryIntegrationTest extends BaseNotificationsTest {
+public class NotificationsRepositoryIntegrationTest extends BaseNotificationsIntegrationTest {
     @Test
     void findAllBySentFalseTest() {
         trxStepVerifier.create(notificationsRepository.findAllBySent(false).collectList()).

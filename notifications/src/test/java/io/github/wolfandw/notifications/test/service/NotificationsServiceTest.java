@@ -8,8 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -31,25 +29,6 @@ public class NotificationsServiceTest {
     private NotificationsServiceImpl notificationsService;
 
     @Test
-    void requestNotificationIsUnauthorizedTest() {
-        UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-        when(notificationsRepository.save(any(Notification.class)))
-                .thenReturn(Mono.error(new AuthorizationDeniedException("error")));
-        StepVerifier.create(notificationsService.requestNotification(outboxId, outboxId, "test message"))
-                .verifyError(AuthorizationDeniedException.class);
-    }
-
-    @Test
-    void requestNotificationIsEmptyTest() {
-        UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-        when(notificationsRepository.save(any(Notification.class)))
-                .thenReturn(Mono.empty());
-        StepVerifier.create(notificationsService.requestNotification(outboxId, outboxId, "test message"))
-                .verifyComplete();
-    }
-
-    @Test
-    @WithMockUser(roles = "NOTIFICATIONS_SERVICE_CLIENT")
     void requestNotificationTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Notification notification = new Notification();

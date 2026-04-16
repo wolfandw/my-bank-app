@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -23,6 +23,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockJwt;
 
 /**
  * Модульные тесты контроллера уведомлений.
@@ -70,6 +71,7 @@ public class NotificationsControllerIntegrationTest {
     void requestNotificationIsUnauthorizedTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         webTestClient
+                .mutateWith(csrf())
                 .post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/notifications")
@@ -78,17 +80,18 @@ public class NotificationsControllerIntegrationTest {
                         .queryParam("message", "test")
                         .build())
                 .exchange()
-                .expectStatus().isForbidden();
+                .expectStatus().isFound();
     }
 
     @Test
-    @WithMockUser(roles = "NOTIFICATIONS_SERVICE_CLIENT")
     void requestNotificationTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         when(notificationsService.requestNotification(any(UUID.class), any(UUID.class), any(String.class)))
                 .thenReturn(Mono.just(outboxId.toString()));
         webTestClient
                 .mutateWith(csrf())
+                .mutateWith(mockJwt()
+                        .authorities(new SimpleGrantedAuthority("ROLE_NOTIFICATIONS_SERVICE_CLIENT")))
                 .post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/notifications")

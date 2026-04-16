@@ -1,0 +1,40 @@
+package contracts
+
+import org.springframework.cloud.contract.spec.Contract
+
+Contract.make {
+    description "Обработка запроса на перевод наличных"
+
+    request {
+        method 'POST'
+        url('/api/transfer') {
+            queryParameters {
+                parameter 'login': 'user'
+                parameter 'value': '100.01'
+                parameter 'recipient': 'admin'
+            }
+        }
+        headers {
+            contentType('application/x-www-form-urlencoded')
+            header 'Authorization', value(
+                    // Для консьюмера (WireMock): любой Bearer-токен
+                    consumer(regex('Bearer\\s+.+')),
+                    // Для провайдера (MockMvc-тест): ровно этот токен
+                    producer('Bearer test-token')
+            )
+        }
+    }
+
+    response {
+        status 200
+        headers {
+            contentType('application/json')
+        }
+        body(
+                userId : "550e8400-e29b-41d4-a716-446655440000",
+                login : "user",
+                accepted : true,
+                message: "test message"
+        )
+    }
+}

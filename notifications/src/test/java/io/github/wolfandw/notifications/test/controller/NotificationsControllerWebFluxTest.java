@@ -37,7 +37,9 @@ public class NotificationsControllerWebFluxTest {
     @Test
     void requestNotificationIsUnauthorizedTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-        webTestClient.post()
+        webTestClient
+                .mutateWith(csrf())
+                .post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/notifications")
                         .queryParam("outboxId", outboxId)
@@ -45,7 +47,7 @@ public class NotificationsControllerWebFluxTest {
                         .queryParam("message", "test")
                         .build())
                 .exchange()
-                .expectStatus().isForbidden();
+                .expectStatus().isUnauthorized();
     }
 
     @Test
@@ -55,7 +57,8 @@ public class NotificationsControllerWebFluxTest {
         when(notificationsService.requestNotification(any(UUID.class), any(UUID.class), any(String.class)))
                 .thenReturn(Mono.just(outboxId.toString()));
 
-        webTestClient.mutateWith(csrf())
+        webTestClient
+                .mutateWith(csrf())
                 .post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/notifications")

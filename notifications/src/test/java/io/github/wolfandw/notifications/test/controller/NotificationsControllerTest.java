@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.test.context.support.WithMockUser;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -48,7 +47,6 @@ class NotificationsControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "NOTIFICATIONS_SERVICE_CLIENT")
     void requestNotificationTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         when(notificationsService.requestNotification(any(UUID.class), any(UUID.class), any(String.class)))

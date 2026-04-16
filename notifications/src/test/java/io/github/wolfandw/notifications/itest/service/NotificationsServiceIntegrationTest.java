@@ -1,6 +1,6 @@
 package io.github.wolfandw.notifications.itest.service;
 
-import io.github.wolfandw.notifications.itest.BaseNotificationsTest;
+import io.github.wolfandw.notifications.itest.BaseNotificationsIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -12,7 +12,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 /**
  * Интеграционный тест сервиса уведомлений.
  */
-public class NotificationsServiceIntegrationTest extends BaseNotificationsTest {
+public class NotificationsServiceIntegrationTest extends BaseNotificationsIntegrationTest {
 
     @Test
     void requestNotificationIsUnauthorizedTest() {

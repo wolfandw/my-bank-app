@@ -18,6 +18,9 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+/**
+ * Базовый интеграционный тест сервиса уведомлений.
+ */
 @ActiveProfiles("test")
 @SpringBootTest(
         classes = NotificationsApplication.class,
@@ -32,7 +35,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 )
 @Import({IntegrationTestConfiguration.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public abstract class BaseNotificationsTest extends AbstractTestcontainersTest {
+public abstract class BaseNotificationsIntegrationTest extends AbstractTestcontainersTest {
     @Autowired
     protected TrxStepVerifier trxStepVerifier;
 

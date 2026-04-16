@@ -25,6 +25,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockJwt;
 
+/**
+ * Базовый контрактный тест поставщика сервиса уведомлений.
+ */
 @SpringBootTest(classes = NotificationsApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {

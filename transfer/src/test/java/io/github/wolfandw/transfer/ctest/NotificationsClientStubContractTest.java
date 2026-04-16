@@ -19,16 +19,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
+/**
+ * Контрактный тест клиента сервиса нотификаций.
+ */
 @ActiveProfiles("contract-test")
 @SpringBootTest(classes = TransferApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -77,34 +76,22 @@ public class NotificationsClientStubContractTest {
 
     @Test
     void processSendingUnsentOutboxTest() {
-        Outbox o0False = new Outbox();
-        o0False.setId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-        o0False.setUserId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-        o0False.setMessage("Тестовое сообщение для отправки");
-        o0False.setSent(false);
-
-        Outbox o0True = new Outbox();
-        o0True.setId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-        o0True.setUserId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-        o0True.setMessage("test0");
-        o0True.setSent(true);
-
-        Flux<Outbox> outboxFlux = Flux.just(o0False);
-        when(outboxRepository.findAllBySent(any(Boolean.class))).thenReturn(outboxFlux);
-        when(outboxRepository.findById(any(UUID.class))).thenReturn(Mono.just(o0False));
-        when(outboxRepository.save(any(Outbox.class))).thenReturn(Mono.just(o0True));
-        when(outboxRepository.save(any(Outbox.class))).thenReturn(Mono.just(o0True));
+        Outbox outbox = new Outbox();
+        outbox.setId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+        outbox.setUserId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+        outbox.setMessage("Тестовое сообщение для отправки");
+        outbox.setSent(false);
 
         webTestClient
             .post()
-            .uri(uriBuilder -> buildUri(uriBuilder, o0False.getId(), o0False.getUserId(), o0False.getMessage()))
+            .uri(uriBuilder -> buildUri(uriBuilder, outbox.getId(), outbox.getUserId(), outbox.getMessage()))
             .header("Authorization", "Bearer any-token")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().isOk()
             .expectBody(String.class)
             .value(actualOutboxId -> {
-                assertThat(actualOutboxId).isEqualTo(o0False.getId().toString());
+                assertThat(actualOutboxId).isEqualTo(outbox.getId().toString());
             });
     }
 
