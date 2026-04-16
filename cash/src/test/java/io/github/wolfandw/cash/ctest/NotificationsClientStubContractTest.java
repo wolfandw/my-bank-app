@@ -1,10 +1,10 @@
-package io.github.wolfandw.transfer.ctest;
+package io.github.wolfandw.cash.ctest;
 
+import io.github.wolfandw.cash.CashApplication;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.OutboxSchedulerService;
-import io.github.wolfandw.transfer.TransferApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Контрактный тест клиента сервиса нотификаций.
  */
 @ActiveProfiles("contract-test")
-@SpringBootTest(classes = TransferApplication.class,
+@SpringBootTest(classes = CashApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "server.port=0",
