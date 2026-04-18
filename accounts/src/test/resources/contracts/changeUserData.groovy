@@ -15,7 +15,7 @@ Contract.make {
             }
         }
         headers {
-            contentType('application/x-www-form-urlencoded')
+            contentType('application/json')
             header 'Authorization', value(
                     // Для консьюмера (WireMock): любой Bearer-токен
                     consumer(regex('Bearer\\s+.+')),

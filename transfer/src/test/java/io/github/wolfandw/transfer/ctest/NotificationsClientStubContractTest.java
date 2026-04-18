@@ -2,7 +2,6 @@ package io.github.wolfandw.transfer.ctest;
 
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
-import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.OutboxSchedulerService;
 import io.github.wolfandw.transfer.TransferApplication;
 import org.junit.jupiter.api.Test;

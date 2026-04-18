@@ -31,15 +31,15 @@ public class FrontUiController {
     private static final String PARAMETER_ERROR = "error";
     private static final String PARAMETER_INFO = "info";
 
-    private final FrontUiService accountsService;
+    private final FrontUiService frontUiService;
 
     /**
      * Создает контроллер для работы с аккаунтами.
      *
-     * @param accountsService сервис аккаунтов
+     * @param frontUiService сервис аккаунтов
      */
-    public FrontUiController(FrontUiService accountsService) {
-        this.accountsService = accountsService;
+    public FrontUiController(FrontUiService frontUiService) {
+        this.frontUiService = frontUiService;
     }
 
     /**
@@ -62,7 +62,7 @@ public class FrontUiController {
     public Mono<Rendering> getAccount(@RequestParam(value = PARAMETER_ERROR, required = false) String error,
                                       @RequestParam(value = PARAMETER_INFO, required = false) String info) {
         LOG.debug("Пользователь -> Front UI. Получен запрос на получение данных аккаунта");
-        Mono<AccountDto> accountDtoMono = accountsService.getAccount();
+        Mono<AccountDto> accountDtoMono = frontUiService.getAccount();
         return accountDtoMono.map(accountDto ->
                 Rendering.view(TEMPLATE_MAIN)
                 .modelAttribute(ATTRIBUTE_ACCOUNT, accountDtoMono)
@@ -82,7 +82,7 @@ public class FrontUiController {
     @PreAuthorize("isAuthenticated()")
     public Mono<String> changeUserData(@ModelAttribute ChangeUserDataRequestDto request) {
         LOG.debug("Пользователь -> Front UI. Получен запрос на изменение персональных данных");
-        Mono<OperationResultDto> accountPageDtoMono = accountsService.changeUserData(request.getName(), request.getBirthdate());
+        Mono<OperationResultDto> accountPageDtoMono = frontUiService.changeUserData(request.getName(), request.getBirthdate());
         return accountPageDtoMono.map(this::getRedirect);
     }
 
@@ -96,7 +96,7 @@ public class FrontUiController {
     @PreAuthorize("isAuthenticated()")
     public Mono<String> changeCash(@ModelAttribute ChangeCashRequestDto request) {
         LOG.debug("Пользователь -> Front UI. Получен запрос на изменение наличных");
-        Mono<OperationResultDto> accountPageDtoMono = accountsService.changeCash(request.getValue(), request.getAction());
+        Mono<OperationResultDto> accountPageDtoMono = frontUiService.changeCash(request.getValue(), request.getAction());
         return accountPageDtoMono.map(this::getRedirect);
     }
 
@@ -110,7 +110,7 @@ public class FrontUiController {
     @PreAuthorize("isAuthenticated()")
     public Mono<String> transferCash(@ModelAttribute TransferCashRequestDto request) {
         LOG.debug("Пользователь -> Front UI. Получен запрос на перевод наличных");
-        Mono<OperationResultDto> accountPageDtoMono = accountsService.transferCash(request.getValue(), request.getRecipient());
+        Mono<OperationResultDto> accountPageDtoMono = frontUiService.transferCash(request.getValue(), request.getRecipient());
         return accountPageDtoMono.map(this::getRedirect);
     }
 

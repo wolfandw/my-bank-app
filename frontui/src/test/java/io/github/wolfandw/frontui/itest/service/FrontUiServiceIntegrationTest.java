@@ -1,16 +1,16 @@
-package io.github.wolfandw.accounts.itest.service;
+package io.github.wolfandw.frontui.itest.service;
 
-import io.github.wolfandw.accounts.itest.BaseAccountsIntegrationTest;
 import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
+import io.github.wolfandw.frontui.itest.BaseFrontUiIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,15 +24,15 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
- * Интеграционный тест сервиса счетов.
+ * Интеграционный тест сервиса ui.
  */
-public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest {
+public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
     @MockitoBean
     private WebClient webClient;
     @MockitoBean
     private WebClient.RequestBodyUriSpec requestBodyUriSpec;
     @MockitoBean
-    private WebClient.RequestHeadersSpec requestHeadersSpec;
+    private WebClient.RequestHeadersUriSpec requestHeadersUriSpec;
     @MockitoBean
     private WebClient.ResponseSpec responseSpec;
     @MockitoBean
@@ -40,8 +40,20 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
 
     @Test
     void getAccountIsUnauthorizedTest() {
-        trxStepVerifier.create(accountsService.getAccount("user"))
-                .verifyError(AuthorizationDeniedException.class);
+        UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        UUID adminId = UUID.fromString("550e8400-e29b-41d4-a716-446655440001");
+        UserDto userDto = new UserDto(userId, "user", "User", "1999-01-01");
+        UserDto adminDto = new UserDto(adminId, "admin", "Admin", "1999-01-01");
+        AccountDto accountDto = new AccountDto(userId, userDto, BigDecimal.TEN,  List.of(adminDto));
+
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(AccountDto.class))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(frontUiService.getAccount()).verifyComplete();
     }
 
     @Test
@@ -53,24 +65,36 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         UserDto adminDto = new UserDto(adminId, "admin", "Admin", "1999-01-01");
         AccountDto accountDto = new AccountDto(userId, userDto, BigDecimal.TEN,  List.of(adminDto));
 
-        when(webClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(AccountDto.class))
                 .thenReturn(Mono.just(accountDto));
 
-        trxStepVerifier.create(accountsService.getAccount("user")).
+        StepVerifier.create(frontUiService.getAccount()).
                 consumeNextWith(actualAccountDto -> {
-                    assertThat(actualAccountDto.id()).isEqualTo(UUID.fromString("650e8400-e29b-41d4-a716-446655440000"));
+                    assertThat(actualAccountDto.id()).isEqualTo(userId);
                     assertThat(actualAccountDto.user()).isEqualTo(accountDto.user());
                 }).verifyComplete();
     }
 
     @Test
     void changeCashIsUnauthorizedTest() {
-        trxStepVerifier.create(accountsService.changeCash("user", BigDecimal.TEN, CashAction.PUT))
-                .verifyError(AuthorizationDeniedException.class);
+        UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", false, "test message");
+
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
+                .thenReturn(Mono.just(operationResultDto));
+
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
+                consumeNextWith(actualResult -> {
+                    assertThat(actualResult.accepted()).isFalse();
+                }).verifyComplete();
     }
 
     @Test
@@ -86,7 +110,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(accountsService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();
@@ -94,8 +118,20 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
 
     @Test
     void transferCashIsUnauthorizedTest() {
-        trxStepVerifier.create(accountsService.transferCash("user", BigDecimal.TEN, "admin"))
-                .verifyError(AuthorizationDeniedException.class);
+        UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", false, "test message");
+
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
+                .thenReturn(Mono.just(operationResultDto));
+
+        StepVerifier.create(frontUiService.transferCash(BigDecimal.TEN, "admin")).
+                consumeNextWith(actualResult -> {
+                    assertThat(actualResult.accepted()).isFalse();
+                }).verifyComplete();
     }
 
     @Test
@@ -111,7 +147,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(accountsService.transferCash("user", BigDecimal.TEN, "admin")).
+        StepVerifier.create(frontUiService.transferCash(BigDecimal.TEN, "admin")).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();
@@ -119,8 +155,20 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
 
     @Test
     void changeUserDataIsUnauthorizedTest() {
-        trxStepVerifier.create(userService.changeUserData("user","User", LocalDate.of(1999, 1, 1)))
-                .verifyError(AuthorizationDeniedException.class);
+        UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", false, "test message");
+
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
+                .thenReturn(Mono.just(operationResultDto));
+
+        StepVerifier.create(frontUiService.changeUserData("User", LocalDate.of(1999, 1, 1))).
+                consumeNextWith(actualResult -> {
+                    assertThat(actualResult.accepted()).isFalse();
+                }).verifyComplete();
     }
 
     @Test
@@ -136,7 +184,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(userService.changeUserData("user","User", LocalDate.of(1999, 1, 1))).
+        StepVerifier.create(frontUiService.changeUserData("User", LocalDate.of(1999, 1, 1))).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();

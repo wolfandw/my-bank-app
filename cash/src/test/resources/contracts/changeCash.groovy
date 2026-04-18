@@ -10,12 +10,12 @@ Contract.make {
         url('/api/cash') {
             queryParameters {
                 parameter 'login': 'user'
-                parameter 'value': '100.01'
+                parameter 'value': '10'
                 parameter 'action': 'PUT'
             }
         }
         headers {
-            contentType('application/x-www-form-urlencoded')
+            contentType('application/json')
             header 'Authorization', value(
                     // Для консьюмера (WireMock): любой Bearer-токен
                     consumer(regex('Bearer\\s+.+')),

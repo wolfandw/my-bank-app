@@ -1,11 +1,11 @@
 package io.github.wolfandw.cash.itest;
 
 import io.github.wolfandw.cash.CashApplication;
+import io.github.wolfandw.cash.itest.configuration.IntegrationTestConfiguration;
+import io.github.wolfandw.cash.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.cash.service.CashService;
 import io.github.wolfandw.chassis.itest.AbstractTestcontainersTest;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
-import io.github.wolfandw.cash.itest.configuration.IntegrationTestConfiguration;
-import io.github.wolfandw.cash.itest.configuration.TrxStepVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;

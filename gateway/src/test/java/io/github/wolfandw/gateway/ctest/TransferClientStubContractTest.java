@@ -1,9 +1,9 @@
-package io.github.wolfandw.cash.ctest;
+package io.github.wolfandw.gateway.ctest;
 
-import io.github.wolfandw.cash.CashApplication;
-import io.github.wolfandw.chassis.model.Outbox;
+import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxSchedulerService;
+import io.github.wolfandw.gateway.GatewayApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,32 +14,36 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Контрактный тест клиента сервиса нотификаций.
+ * Контрактный тест клиента сервиса переводов.
  */
 @ActiveProfiles("contract-test")
-@SpringBootTest(classes = CashApplication.class,
+@SpringBootTest(classes = GatewayApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "server.port=0",
                 "spring.liquibase.enabled=false",
                 "spring.autoconfigure.exclude=" +
-                    "org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration," +
-                    "org.springframework.boot.health.autoconfigure.actuate.endpoint.HealthEndpointAutoConfiguration," +
-                    "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
-                    "org.springframework.boot.jdbc.autoconfigureDataSourceAutoConfiguration," +
-                    "org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration," +
-                    "org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration",
+                        "io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration," +
+                        "io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration," +
+                        "org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration," +
+                        "org.springframework.boot.health.autoconfigure.actuate.endpoint.HealthEndpointAutoConfiguration," +
+                        "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
+                        "org.springframework.boot.jdbc.autoconfigureDataSourceAutoConfiguration," +
+                        "org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration," +
+                        "org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration",
                 "spring.cloud.consul.enabled=false",
                 "spring.cloud.consul.config.enabled=false",
                 "spring.cloud.compatibility-verifier.enabled=false",
@@ -47,11 +51,11 @@ import static org.assertj.core.api.Assertions.assertThat;
         }
 )
 @AutoConfigureStubRunner(
-        ids = "io.github.wolfandw:notifications:+:stubs:8086",
+        ids = "io.github.wolfandw:transfer:+:stubs:8085",
         stubsMode = StubRunnerProperties.StubsMode.LOCAL
 )
 @AutoConfigureWebTestClient
-public class NotificationsClientStubContractTest {
+public class TransferClientStubContractTest {
     @MockitoBean
     private ReactiveClientRegistrationRepository clientRegistrationRepository;
 
@@ -67,39 +71,38 @@ public class NotificationsClientStubContractTest {
     @MockitoBean
     private OutboxSchedulerService outboxScheduleService;
 
+    @MockitoBean
+    private SecurityWebFilterChain securityWebFilterChain;
+
     @Autowired
     private WebTestClient webTestClient;
 
     @Test
-    void processSendingUnsentOutboxTest() {
-        Outbox outbox = new Outbox();
-        outbox.setId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-        outbox.setUserId(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
-        outbox.setMessage("Тестовое сообщение для отправки");
-        outbox.setSent(false);
-
+    void transferCashTest() {
+        UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         webTestClient
             .post()
-            .uri(uriBuilder -> buildUri(uriBuilder, outbox.getId(), outbox.getUserId(), outbox.getMessage()))
+            .uri(uriBuilder -> buildUri(uriBuilder, "user", BigDecimal.TEN, "admin"))
             .header("Authorization", "Bearer any-token")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().isOk()
-            .expectBody(String.class)
-            .value(actualOutboxId -> {
-                assertThat(actualOutboxId).isEqualTo(outbox.getId().toString());
+            .expectBody(OperationResultDto.class)
+            .value(actualResult -> {
+                assertThat(actualResult.userId()).isEqualTo(userId);
+                assertThat(actualResult.accepted()).isTrue();
             });
     }
 
-    private URI buildUri(UriBuilder uriBuilder, UUID outboxId, UUID userId, String message) {
+    private URI buildUri(UriBuilder uriBuilder, String login, BigDecimal value, String recipient) {
         return uriBuilder
                 .scheme("http")
                 .host("localhost")
-                .port("8086")
-                .path("/api/notifications")
-                .queryParam("outboxId", outboxId)
-                .queryParam("userId", userId)
-                .queryParam("message", message)
+                .port("8085")
+                .path("/api/transfer")
+                .queryParam("login", login)
+                .queryParam("value", value)
+                .queryParam("recipient", recipient)
                 .build();
     }
 }

@@ -22,13 +22,13 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 		SecurityWebFilterConfiguration.class
 })
 @EnableDiscoveryClient
-public class FrontUIApplication {
+public class FrontUiApplication {
     /**
 	 * Запускает приложение.
 	 *
      * @param args аргументы
      */
 	public static void main(String[] args) {
-		SpringApplication.run(FrontUIApplication.class, args);
+		SpringApplication.run(FrontUiApplication.class, args);
 	}
 }
