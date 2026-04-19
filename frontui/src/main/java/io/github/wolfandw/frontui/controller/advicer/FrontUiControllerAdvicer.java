@@ -92,7 +92,7 @@ public class FrontUiControllerAdvicer {
      * @return имя шаблона ошибки
      */
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public Mono<Rendering> handleAuthorizationDeniedException(DataAccessException e) {
+    public Mono<Rendering> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
         return Mono.just(Rendering.redirectTo("/login").build());
     }
 

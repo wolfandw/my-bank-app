@@ -31,7 +31,7 @@ public class CashServiceImpl implements CashService {
 
     private static final String LOGIN_PARAMETER = "login";
     private static final String VALUE_PARAMETER = "value";
-    private static final String ACTION_PARAMETER = "value";
+    private static final String ACTION_PARAMETER = "action";
 
     private static final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
 
