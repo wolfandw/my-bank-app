@@ -1,0 +1,107 @@
+services:
+
+  consul:
+    container_name: consul
+    build:
+      context: .
+      dockerfile: ./consul/Dockerfile
+    ports:
+      - "8500:8500"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://consul:8500/v1/status/leader" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.1
+    container_name: keycloak
+    command: start-dev
+      --import-realm
+      --http-port=8080
+      --http-enabled=true
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+    volumes:
+      - ./keycloak/data:/opt/keycloak/data/import
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    depends_on:
+      consul:
+        condition: service_healthy
+    healthcheck:
+      test: [ 'CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:9000/health/ready' ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  accountsdata:
+    image: postgres:17-alpine
+    container_name: accountsdata
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ACCOUNTS_DB_NAME}
+      POSTGRES_USER: ${ACCOUNTS_DB_USERNAME}
+      POSTGRES_PASSWORD: ${ACCOUNTS_DB_PASSWORD}
+    depends_on:
+      consul:
+        condition: service_healthy
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${ACCOUNTS_DB_USERNAME} -d ${ACCOUNTS_DB_NAME}" ]
+      interval: 5s
+
+  cashdata:
+    image: postgres:17-alpine
+    container_name: cashdata
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${CASH_DB_NAME}
+      POSTGRES_USER: ${CASH_DB_USERNAME}
+      POSTGRES_PASSWORD: ${CASH_DB_PASSWORD}
+    depends_on:
+      consul:
+        condition: service_healthy
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${CASH_DB_USERNAME} -d ${CASH_DB_NAME}" ]
+      interval: 5s
+
+  transferdata:
+    image: postgres:17-alpine
+    container_name: transferdata
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${TRANSFER_DB_NAME}
+      POSTGRES_USER: ${TRANSFER_DB_USERNAME}
+      POSTGRES_PASSWORD: ${TRANSFER_DB_PASSWORD}
+    depends_on:
+      consul:
+        condition: service_healthy
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${TRANSFER_DB_USERNAME} -d ${TRANSFER_DB_NAME}" ]
+      interval: 5s
+
+  notificationsdata:
+    image: postgres:17-alpine
+    container_name: notificationsdata
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${NOTIFICATIONS_DB_NAME}
+      POSTGRES_USER: ${NOTIFICATIONS_DB_USERNAME}
+      POSTGRES_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD}
+    depends_on:
+      consul:
+        condition: service_healthy
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${NOTIFICATIONS_DB_USERNAME} -d ${NOTIFICATIONS_DB_NAME}" ]
+      interval: 5s

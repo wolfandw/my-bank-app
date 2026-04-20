@@ -1,0 +1,14 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="000_init_outbox_table" author="wolfandw">
+        <sqlFile path="sql/000_init_outbox_table.sql" relativeToChangelogFile="true"/>
+        <rollback>
+            <sqlFile path="sql/000_rollback_outbox_table.sql" relativeToChangelogFile="true"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

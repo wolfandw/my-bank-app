@@ -1,0 +1,3 @@
+io.github.wolfandw.chassis.configuration.WebClientConfiguration
+io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration
+io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration
