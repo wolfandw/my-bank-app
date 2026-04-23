@@ -1,0 +1,50 @@
+apiVersion: v2
+name: my-bank-app-chart
+description: Зонтичный Helm-чарт для my-bank-app
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+
+dependencies:
+  - name: keycloak
+    version: "26.3.1"
+    repository: "file://charts/keycloak-chart"
+    alias: keycloak
+
+  - name: postgres
+    version: 0.1.0
+    repository: "file://charts/postgres-chart"
+    alias: accountsdata
+
+  - name: postgres
+    version: 0.1.0
+    repository: "file://charts/postgres-chart"
+    alias: cashdata
+
+  - name: postgres
+    version: 0.1.0
+    repository: "file://charts/postgres-chart"
+    alias: notificationdata
+
+  - name: postgres
+    version: 0.1.0
+    repository: "file://charts/postgres-chart"
+    alias: transferdata
+
+  - name: accounts
+    repository: "file://charts/accounts-chart"
+
+  - name: cash
+    repository: "file://charts/cash-chart"
+
+  - name: gateway
+    repository: "file://charts/gateway-chart"
+
+  - name: frontui
+    repository: "file://charts/frontui-chart"
+
+  - name: notification
+    repository: "file://charts/notifications-chart"
+
+  - name: transfer
+    repository: "file://charts/transfer-chart"

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: accounts-chart
+description: Helm-чарт сервиса счетов
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
