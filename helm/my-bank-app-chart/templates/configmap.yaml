@@ -25,7 +25,6 @@ data:
   TRANSFER_DB_PORT: "5435"
   TRANSFER_DB_NAME: "transfer_db"
   
-
   NOTIFICATIONS_DB_HOST: "localhost"
   NOTIFICATIONS_DB_PORT: "5436"
   NOTIFICATIONS_DB_NAME: "notifications_db"

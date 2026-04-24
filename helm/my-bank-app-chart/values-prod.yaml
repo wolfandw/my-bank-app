@@ -1,0 +1,45 @@
+global:
+  namespace: prod
+
+accounts:
+  replicaCount: 3
+  resources:
+    limits: { memory: "2Gi", cpu: "2000m" }
+    requests: { memory: "1Gi", cpu: "500m" }
+
+cash:
+  replicaCount: 3
+  resources:
+    limits: { memory: "2Gi", cpu: "2000m" }
+    requests: { memory: "1Gi", cpu: "500m" }
+
+notifications:
+  replicaCount: 3
+  resources:
+    limits: { memory: "2Gi", cpu: "2000m" }
+    requests: { memory: "1Gi", cpu: "500m" }
+
+transfer:
+  replicaCount: 3
+  resources:
+    limits: { memory: "2Gi", cpu: "2000m" }
+    requests: { memory: "1Gi", cpu: "500m" }
+
+frontui:
+  replicaCount: 3
+  resources:
+    limits: { memory: "2Gi", cpu: "2000m" }
+    requests: { memory: "1Gi", cpu: "500m" }
+
+gateway:
+  replicaCount: 3
+  resources:
+    limits: { memory: "2Gi", cpu: "2000m" }
+    requests: { memory: "1Gi", cpu: "500m" }
+
+accountsdata:
+  persistence: { size: 3Gi, storageClass: "premium-rwo" }
+
+keycloak:
+  postgresql:
+    persistence: { size: 3Gi, storageClass: "premium-rwo" }

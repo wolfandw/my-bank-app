@@ -3,13 +3,13 @@ kind: Service
 metadata:
   name: {{ include "postgres-chart.fullname" . }}
   labels:
-    {{- include "postgres-chart.labels" . | nindent 4 }}
+    app: {{ include "postgres-chart.name" . }}
 spec:
-  type: {{ .Values.service.type }}
+  clusterIP: None
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.service.port | default 5432 }}
+      targetPort: 5432
       protocol: TCP
-      name: http
+      name: postgres
   selector:
-    {{- include "postgres-chart.selectorLabels" . | nindent 4 }}
+    app: {{ include "postgres-chart.name" . }}
