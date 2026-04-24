@@ -1,6 +1,13 @@
 replicaCount: 1
 
 image:
-  repository: accounts
-  tag: ""
+  repository: accounts-image
+  tag: "0.1.0"
 
+database:
+  host: my-bank-app-chart-accountdata
+  name: account_db
+
+keycloak:
+  host: keycloak
+  port: 8080
