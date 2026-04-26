@@ -1,7 +1,6 @@
 package io.github.wolfandw.chassis.configuration;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.client.*;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
@@ -15,20 +14,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @AutoConfiguration
 public class WebClientConfiguration {
     @Bean
-    @LoadBalanced
-    public WebClient.Builder loadBalancedWebClientBuilder() {
-        return WebClient.builder();
-    }
-
-    @Bean
-    public WebClient webClient(WebClient.Builder loadBalancedWebClientBuilder,
-                               ReactiveClientRegistrationRepository clientRegistrations,
+    public WebClient webClient(ReactiveClientRegistrationRepository clientRegistrations,
                                ServerOAuth2AuthorizedClientRepository authorizedClients) {
         ServerOAuth2AuthorizedClientExchangeFilterFunction oAuth2Filter =
                 new ServerOAuth2AuthorizedClientExchangeFilterFunction(clientRegistrations, authorizedClients);
         oAuth2Filter.setDefaultClientRegistrationId("keycloak");
         oAuth2Filter.setDefaultOAuth2AuthorizedClient(true);
-        return loadBalancedWebClientBuilder
+        return WebClient.builder()
                 .filter(oAuth2Filter)
                 .build();
     }

@@ -3,7 +3,6 @@ package io.github.wolfandw.notifications;
 import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
 /**
@@ -12,7 +11,6 @@ import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 @SpringBootApplication(exclude = {
         OutboxProcessorAutoConfiguration.class
 })
-@EnableDiscoveryClient
 @EnableR2dbcRepositories(basePackages = {"io.github.wolfandw.notifications.repository"})
 public class NotificationsApplication {
     /**
