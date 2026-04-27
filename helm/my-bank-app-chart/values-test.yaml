@@ -1,19 +1,19 @@
 global:
   namespace: test
 
-accounts:
+accounts-chart:
   replicaCount: 2
   resources:
     limits: { memory: "1Gi", cpu: "1000m" }
     requests: { memory: "512Mi", cpu: "200m" }
 
-cash:
+cash-chart:
   replicaCount: 2
   resources:
     limits: { memory: "1Gi", cpu: "1000m" }
     requests: { memory: "512Mi", cpu: "200m" }
 
-notifications:
+notifications-chart:
   replicaCount: 2
   resources:
     limits: { memory: "1Gi", cpu: "1000m" }
@@ -25,7 +25,7 @@ transfer:
     limits: { memory: "1Gi", cpu: "1000m" }
     requests: { memory: "512Mi", cpu: "200m" }
 
-frontui:
+frontui-chart:
   replicaCount: 2
   resources:
     limits: { memory: "1Gi", cpu: "1000m" }
@@ -37,7 +37,7 @@ gateway:
     limits: { memory: "1Gi", cpu: "1000m" }
     requests: { memory: "512Mi", cpu: "200m" }
 
-accountsdata: { postgres: { password: "test_db_pass_1" } }
-cashdata: { postgres: { password: "test_db_pass_2" } }
-notificationadata: { postgres: { password: "test_db_pass_3" } }
-transferdata: { postgres: { password: "test_db_pass_4" } }
+accountsdata: { postgres: { password: "postgres" } }
+cashdata: { postgres: { password: "postgres" } }
+notificationsdata: { postgres: { password: "postgres" } }
+transferdata: { postgres: { password: "postgres" } }

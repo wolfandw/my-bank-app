@@ -1,4 +1,4 @@
-accountdata:
+accountsdata:
   postgres:
     db: accounts_db
     user: postgres
@@ -70,18 +70,33 @@ keycloak:
     adminUser: admin
     adminPassword: admin
 
-  persistence:
-    deployPostgresql: true
-
   extraEnvVars:
     - name: KC_BOOTSTRAP_ADMIN_USERNAME
       value: "admin"
     - name: KC_BOOTSTRAP_ADMIN_PASSWORD
       value: "admin"
+    - name: KEYCLOAK_LOG_LEVEL
+      value: "DEBUG"
     - name: KC_HEALTH_ENABLED
       value: "true"
+    - name: KC_METRICS_ENABLED
+      value: "true"
+    - name: KEYCLOAK_PRODUCTION
+      value: "false"
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
+    - name: KEYCLOAK_PROXY
+      value: "edge"
+    - name: KEYCLOAK_ENABLE_HTTPS
+      value: "false"
     - name: KC_HTTP_ENABLED
       value: "true"
+    - name: KC_HOSTNAME_STRICT_BACKCHANNEL
+      value: "false"
+    - name: KC_PROXY_HEADERS
+      value: "forwarded"
     - name: KC_HOSTNAME
       value: "keycloak"
     - name: KC_IMPORT_STRATEGY
@@ -115,3 +130,6 @@ keycloak:
           mountPath: /cm
         - name: realm-import-writable
           mountPath: /opt/bitnami/keycloak/data/import
+
+  persistence:
+    deployPostgresql: true

@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: { { .Chart.Name } }
-  namespace: { { .Release.Namespace | default "dev" } }
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace | default "dev" }}
 spec:
   replicas: 1
   selector:
@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       labels:
-        app: { { .Chart.Name } }
+        app: {{ .Chart.Name }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -28,9 +28,3 @@ spec:
                 secretKeyRef:
                   name: my-bank-app-secrets
                   key: KEYCLOAK_FRONT_UI_SECRET
-            - name: KEYCLOAK_HOST
-              value: "keycloak"
-            - name: KEYCLOAK_PORT
-              value: "8080"
-            - name: KEYCLOAK_REALM
-              value: "my-bank-app-realm"

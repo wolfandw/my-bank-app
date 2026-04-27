@@ -3,11 +3,3 @@ replicaCount: 1
 image:
   repository: transfer-image
   tag: "0.1.0"
-
-database:
-  host: my-bank-app-chart-transferdata
-  name: transfer_db
-
-keycloak:
-  host: keycloak
-  port: 8080

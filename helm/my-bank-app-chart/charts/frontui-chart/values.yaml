@@ -3,7 +3,3 @@ replicaCount: 1
 image:
   repository: frontui-image
   tag: "0.1.0"
-
-keycloak:
-  host: keycloak
-  port: 8080

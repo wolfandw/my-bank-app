@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: { { .Chart.Name } }
-  namespace: { { .Release.Namespace | default "dev" } }
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace | default "dev" }}
 spec:
   replicas: 1
   selector:
@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       labels:
-        app: { { .Chart.Name } }
+        app: {{ .Chart.Name }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -33,20 +33,8 @@ spec:
                 secretKeyRef:
                   name: my-bank-app-secrets
                   key: TRANSFER_DB_PASSWORD
-            - name: TRANSFER_DB_HOST
-              value: "my-bank-app-chart-transferdata"
-            - name: TRANSFER_DB_PORT
-              value: "5435"
-            - name: TRANSFER_DB_NAME
-              value: "transfer_db"
             - name: KEYCLOAK_TRANSFER_SECRET
               valueFrom:
                 secretKeyRef:
                   name: my-bank-app-secrets
                   key: KEYCLOAK_TRANSFER_SECRET
-            - name: KEYCLOAK_HOST
-              value: "keycloak"
-            - name: KEYCLOAK_PORT
-              value: "8080"
-            - name: KEYCLOAK_REALM
-              value: "my-bank-app-realm"

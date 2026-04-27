@@ -6,9 +6,9 @@ version: 0.1.0
 appVersion: "1.16.0"
 
 dependencies:
-  - name: keycloak-chart
-    version: "26.3.1"
-    repository: "file://charts/keycloak-chart"
+  - name: keycloak
+    version: "25.2.0"
+    repository: "file://charts/keycloak"
     alias: keycloak
 
   - name: postgres-chart
@@ -24,27 +24,33 @@ dependencies:
   - name: postgres-chart
     version: 0.1.0
     repository: "file://charts/postgres-chart"
-    alias: notificationdata
+    alias: notificationsdata
 
   - name: postgres-chart
     version: 0.1.0
     repository: "file://charts/postgres-chart"
     alias: transferdata
 
+  - name: notifications-chart
+    version: 0.1.0
+    repository: "file://charts/notifications-chart"
+
   - name: accounts-chart
+    version: 0.1.0
     repository: "file://charts/accounts-chart"
 
   - name: cash-chart
+    version: 0.1.0
     repository: "file://charts/cash-chart"
 
+  - name: transfer-chart
+    version: 0.1.0
+    repository: "file://charts/transfer-chart"
+
   - name: gateway-chart
+    version: 0.1.0
     repository: "file://charts/gateway-chart"
 
   - name: frontui-chart
+    version: 0.1.0
     repository: "file://charts/frontui-chart"
-
-  - name: notifications-chart
-    repository: "file://charts/notifications-chart"
-
-  - name: transfer-chart
-    repository: "file://charts/transfer-chart"

@@ -1,31 +1,31 @@
 global:
   namespace: prod
 
-accounts:
+accounts-chart:
   replicaCount: 3
   resources:
     limits: { memory: "2Gi", cpu: "2000m" }
     requests: { memory: "1Gi", cpu: "500m" }
 
-cash:
+cash-chart:
   replicaCount: 3
   resources:
     limits: { memory: "2Gi", cpu: "2000m" }
     requests: { memory: "1Gi", cpu: "500m" }
 
-notifications:
+notifications-chart:
   replicaCount: 3
   resources:
     limits: { memory: "2Gi", cpu: "2000m" }
     requests: { memory: "1Gi", cpu: "500m" }
 
-transfer:
+transfer-chart:
   replicaCount: 3
   resources:
     limits: { memory: "2Gi", cpu: "2000m" }
     requests: { memory: "1Gi", cpu: "500m" }
 
-frontui:
+frontui-chart:
   replicaCount: 3
   resources:
     limits: { memory: "2Gi", cpu: "2000m" }
@@ -37,7 +37,7 @@ gateway:
     limits: { memory: "2Gi", cpu: "2000m" }
     requests: { memory: "1Gi", cpu: "500m" }
 
-accountsdata:
+account-db:
   persistence: { size: 3Gi, storageClass: "premium-rwo" }
 
 keycloak:

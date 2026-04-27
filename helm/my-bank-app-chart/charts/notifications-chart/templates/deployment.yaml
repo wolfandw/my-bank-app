@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: { { .Chart.Name } }
-  namespace: { { .Release.Namespace | default "dev" } }
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace | default "dev" }}
 spec:
   replicas: 1
   selector:
@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       labels:
-        app: { { .Chart.Name } }
+        app: {{ .Chart.Name }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -33,20 +33,8 @@ spec:
                 secretKeyRef:
                   name: my-bank-app-secrets
                   key: NOTIFICATIONS_DB_PASSWORD
-            - name: NOTIFICATIONS_DB_HOST
-              value: "my-bank-app-chart-notificationsdata"
-            - name: NOTIFICATIONS_DB_PORT
-              value: "5436"
-            - name: NOTIFICATIONS_DB_NAME
-              value: "notifications_db"
             - name: KEYCLOAK_NOTIFICATIONS_SECRET
               valueFrom:
                 secretKeyRef:
                   name: my-bank-app-secrets
                   key: KEYCLOAK_NOTIFICATIONS_SECRET
-            - name: KEYCLOAK_HOST
-              value: "keycloak"
-            - name: KEYCLOAK_PORT
-              value: "8080"
-            - name: KEYCLOAK_REALM
-              value: "my-bank-app-realm"

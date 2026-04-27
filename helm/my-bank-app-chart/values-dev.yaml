@@ -1,31 +1,31 @@
 global:
   namespace: dev
 
-accounts:
+accounts-chart:
   replicaCount: 1
   resources:
     limits: { memory: "512Mi", cpu: "500m" }
     requests: { memory: "256Mi", cpu: "100m" }
 
-cash:
+cash-chart:
   replicaCount: 1
   resources:
     limits: { memory: "512Mi", cpu: "500m" }
     requests: { memory: "256Mi", cpu: "100m" }
 
-notifications:
+notifications-chart:
   replicaCount: 1
   resources:
     limits: { memory: "512Mi", cpu: "500m" }
     requests: { memory: "256Mi", cpu: "100m" }
 
-transfer:
+transfer-chart:
   replicaCount: 1
   resources:
     limits: { memory: "512Mi", cpu: "500m" }
     requests: { memory: "256Mi", cpu: "100m" }
 
-frontui:
+frontui-chart:
   replicaCount: 1
   resources:
     limits: { memory: "512Mi", cpu: "500m" }
