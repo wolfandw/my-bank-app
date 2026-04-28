@@ -3,3 +3,22 @@ replicaCount: 1
 image:
   repository: accounts-image
   tag: "0.1.0"
+
+startupProbe:
+  initialDelaySeconds: 120
+  failureThreshold: 10
+  httpGet:
+    path: /actuator/health
+    port: http
+livenessProbe:
+  initialDelaySeconds: 20
+  failureThreshold: 10
+  httpGet:
+    path: /actuator/health
+    port: http
+readinessProbe:
+  initialDelaySeconds: 20
+  failureThreshold: 10
+  httpGet:
+    path: /actuator/health
+    port: http 
