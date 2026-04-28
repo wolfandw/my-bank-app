@@ -1,10 +1,9 @@
 #!/bin/bash
 
-echo "Создаем Minikube..."
+echo "Стартуем Minikube..."
 minikube delete
 minikube start --driver=docker --memory=8g --cpus=4
 minikube kubectl -- get pods -A
-minikube addons disable ingress
 minikube addons enable ingress
 
 echo ""
@@ -134,8 +133,11 @@ echo "$(minikube ip) my-bank-app" | sudo tee -a /etc/hosts
 
 echo ""
 echo "Состояние сервисов ..."
-minikube kubectl -- wait --for=condition=ready pod -l app=accounts-chart -n dev --timeout=300s
 minikube kubectl -- get pods -n dev
 
 echo ""
 echo "My-bank-app успешно запущен и инициализирован по адресу: http://my-bank-app"
+
+echo ""
+echo "Запускаем helm-тесты..."
+helm test my-bank-app-dev -n dev --logs
