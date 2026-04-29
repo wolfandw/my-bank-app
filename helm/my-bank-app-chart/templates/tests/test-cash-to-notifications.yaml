@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "common.names.fullname" . }}-test-cash-to-notifications-ok
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['sh', '-c']
+      args:
+        - |
+          URL="http://cash-chart:8080/api/notifications"
+          STATUS=$(wget --server-response --spider --tries=3 --timeout=5 $URL 2>&1 | grep "HTTP/" | awk '{print $2}')
+
+          case "$STATUS" in
+            401*)
+              echo "Success: Gateway returned 401 as expected (Unauthorized)."
+              exit 0
+              ;;
+            *)
+              echo "Failed: Expected 401 Unauthorized, but got $STATUS"
+              exit 1
+              ;;
+          esac
+  restartPolicy: Never

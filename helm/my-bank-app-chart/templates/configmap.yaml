@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-bank-app-config
+  namespace: dev
+data:
+  FRONT_UI_PORT: ""
+
+  GATEWAY_HOST: "gateway-chart"
+  GATEWAY_PORT: "8080"
+
+  ACCOUNT_HOST: "accounts-chart"
+  ACCOUNT_PORT: "8080"
+
+  CASH_HOST: "cash-chart"
+  CASH_PORT: "8080"
+
+  TRANSFER_HOST: "transfer-chart"
+  TRANSFER_PORT: "8080"
+
+  NOTIFICATIONS_HOST: "notifications-chart"
+  NOTIFICATIONS_PORT: "8080"
+
+  ACCOUNTS_DB_HOST: "my-bank-app-dev-accountsdata"
+  ACCOUNTS_DB_PORT: "5432"
+  ACCOUNTS_DB_NAME: "accounts_db"
+
+  CASH_DB_HOST: "my-bank-app-dev-cashdata"
+  CASH_DB_PORT: "5432"
+  CASH_DB_NAME: "cash_db"
+
+  TRANSFER_DB_HOST: "my-bank-app-dev-transferdata"
+  TRANSFER_DB_PORT: "5432"
+  TRANSFER_DB_NAME: "transfer_db"
+  
+  NOTIFICATIONS_DB_HOST: "my-bank-app-dev-notificationsdata"
+  NOTIFICATIONS_DB_PORT: "5432"
+  NOTIFICATIONS_DB_NAME: "notifications_db"
+  
+  KEYCLOAK_HOST: "keycloak"
+  KEYCLOAK_PORT: "8080"
+  KEYCLOAK_REALM: "my-bank-app-realm"
+  KEYCLOAK_JWK_SET_URI: "http://keycloak/realms/my-bank-app-realm/protocol/openid-connect/certs"
+  KEYCLOAK_ISSUER_URI: "http://keycloak/realms/my-bank-app-realm"

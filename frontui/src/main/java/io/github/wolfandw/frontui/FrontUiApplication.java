@@ -8,7 +8,6 @@ import org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAu
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration;
 import org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
  * Проложение Front UI.
@@ -21,7 +20,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 		OutboxProcessorAutoConfiguration.class,
 		SecurityWebFilterConfiguration.class
 })
-@EnableDiscoveryClient
 public class FrontUiApplication {
     /**
 	 * Запускает приложение.

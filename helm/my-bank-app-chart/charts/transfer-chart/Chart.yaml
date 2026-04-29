@@ -1,0 +1,6 @@
+apiVersion: v2
+name: transfer-chart
+description: Helm-чарт сервиса переводов
+type: application
+version: 0.1.0
+appVersion: "1.16.0"

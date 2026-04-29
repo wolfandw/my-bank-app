@@ -1,18 +1,5 @@
 services:
 
-  consul:
-    container_name: consul
-    build:
-      context: .
-      dockerfile: ./consul/Dockerfile
-    ports:
-      - "8500:8500"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://consul:8500/v1/status/leader" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.1
     container_name: keycloak
@@ -29,9 +16,6 @@ services:
     ports:
       - "8080:8080"
       - "9000:9000"
-    depends_on:
-      consul:
-        condition: service_healthy
     healthcheck:
       test: [ 'CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:9000/health/ready' ]
       interval: 5s
@@ -46,9 +30,6 @@ services:
       POSTGRES_DB: ${ACCOUNTS_DB_NAME}
       POSTGRES_USER: ${ACCOUNTS_DB_USERNAME}
       POSTGRES_PASSWORD: ${ACCOUNTS_DB_PASSWORD}
-    depends_on:
-      consul:
-        condition: service_healthy
     ports:
       - "5433:5432"
     healthcheck:
@@ -63,9 +44,6 @@ services:
       POSTGRES_DB: ${CASH_DB_NAME}
       POSTGRES_USER: ${CASH_DB_USERNAME}
       POSTGRES_PASSWORD: ${CASH_DB_PASSWORD}
-    depends_on:
-      consul:
-        condition: service_healthy
     ports:
       - "5434:5432"
     healthcheck:
@@ -80,9 +58,6 @@ services:
       POSTGRES_DB: ${TRANSFER_DB_NAME}
       POSTGRES_USER: ${TRANSFER_DB_USERNAME}
       POSTGRES_PASSWORD: ${TRANSFER_DB_PASSWORD}
-    depends_on:
-      consul:
-        condition: service_healthy
     ports:
       - "5435:5432"
     healthcheck:
@@ -97,9 +72,6 @@ services:
       POSTGRES_DB: ${NOTIFICATIONS_DB_NAME}
       POSTGRES_USER: ${NOTIFICATIONS_DB_USERNAME}
       POSTGRES_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD}
-    depends_on:
-      consul:
-        condition: service_healthy
     ports:
       - "5436:5432"
     healthcheck:
@@ -113,20 +85,16 @@ services:
       dockerfile: ./notifications/Dockerfile
     network_mode: host
     environment:
-      - CONSUL_HOST=localhost
-      - CONSUL_PORT=8500
+      - NOTIFICATIONS_PORT=8086
       - NOTIFICATIONS_DB_HOST=localhost
       - NOTIFICATIONS_DB_PORT=5436
       - NOTIFICATIONS_DB_NAME=${NOTIFICATIONS_DB_NAME}
       - NOTIFICATIONS_DB_USERNAME=${NOTIFICATIONS_DB_USERNAME}
       - NOTIFICATIONS_DB_PASSWORD=${NOTIFICATIONS_DB_PASSWORD}
-      - KEYCLOAK_HOST=localhost
-      - KEYCLOAK_PORT=8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_JWK_SET_URI=${KEYCLOAK_JWK_SET_URI}
+      - KEYCLOAK_ISSUER_URI=${KEYCLOAK_ISSUER_URI}
       - KEYCLOAK_NOTIFICATIONS_SECRET=${KEYCLOAK_NOTIFICATIONS_SECRET}
     depends_on:
-      consul:
-        condition: service_healthy
       keycloak:
         condition: service_healthy
       notificationsdata:
@@ -141,22 +109,19 @@ services:
       dockerfile: ./accounts/Dockerfile
     network_mode: host
     environment:
-      - CONSUL_HOST=localhost
-      - CONSUL_PORT=8500
+      - ACCOUNT_PORT=8083
       - ACCOUNTS_DB_HOST=localhost
       - ACCOUNTS_DB_PORT=5433
       - ACCOUNTS_DB_NAME=${ACCOUNTS_DB_NAME}
       - ACCOUNTS_DB_USERNAME=${ACCOUNTS_DB_USERNAME}
       - ACCOUNTS_DB_PASSWORD=${ACCOUNTS_DB_PASSWORD}
       - KEYCLOAK_HOST=localhost
-      - KEYCLOAK_PORT=8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_JWK_SET_URI=${KEYCLOAK_JWK_SET_URI}
+      - KEYCLOAK_ISSUER_URI=${KEYCLOAK_ISSUER_URI}
       - KEYCLOAK_ACCOUNTS_SECRET=${KEYCLOAK_ACCOUNTS_SECRET}
       - NOTIFICATIONS_HOST=localhost
       - NOTIFICATIONS_PORT=8086
     depends_on:
-      consul:
-        condition: service_healthy
       keycloak:
         condition: service_healthy
       accountsdata:
@@ -174,24 +139,20 @@ services:
       dockerfile: ./cash/Dockerfile
     network_mode: host
     environment:
-      - CONSUL_HOST=localhost
-      - CONSUL_PORT=8500
+      - CASH_PORT=8084
       - CASH_DB_HOST=localhost
       - CASH_DB_PORT=5434
       - CASH_DB_NAME=${CASH_DB_NAME}
       - CASH_DB_USERNAME=${CASH_DB_USERNAME}
       - CASH_DB_PASSWORD=${CASH_DB_PASSWORD}
-      - KEYCLOAK_HOST=localhost
-      - KEYCLOAK_PORT=8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_JWK_SET_URI=${KEYCLOAK_JWK_SET_URI}
+      - KEYCLOAK_ISSUER_URI=${KEYCLOAK_ISSUER_URI}
       - KEYCLOAK_CASH_SECRET=${KEYCLOAK_CASH_SECRET}
       - NOTIFICATIONS_HOST=localhost
       - NOTIFICATIONS_PORT=8086
-      - ACCOUNT_HOST=accounts
+      - ACCOUNT_HOST=localhost
       - ACCOUNT_PORT=8083
     depends_on:
-      consul:
-        condition: service_healthy
       keycloak:
         condition: service_healthy
       cashdata:
@@ -210,24 +171,20 @@ services:
       dockerfile: ./transfer/Dockerfile
     network_mode: host
     environment:
-      - CONSUL_HOST=localhost
-      - CONSUL_PORT=8500
+      - TRANSFER_PORT=8085
       - TRANSFER_DB_HOST=localhost
       - TRANSFER_DB_PORT=5435
       - TRANSFER_DB_NAME=${TRANSFER_DB_NAME}
       - TRANSFER_DB_USERNAME=${NOTIFICATIONS_DB_USERNAME}
       - TRANSFER_DB_PASSWORD=${NOTIFICATIONS_DB_PASSWORD}
-      - KEYCLOAK_HOST=localhost
-      - KEYCLOAK_PORT=8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_JWK_SET_URI=${KEYCLOAK_JWK_SET_URI}
+      - KEYCLOAK_ISSUER_URI=${KEYCLOAK_ISSUER_URI}
       - KEYCLOAK_TRANSFER_SECRET=${KEYCLOAK_TRANSFER_SECRET}
       - NOTIFICATIONS_HOST=localhost
       - NOTIFICATIONS_PORT=8086
-      - ACCOUNT_HOST=accounts
+      - ACCOUNT_HOST=localhost
       - ACCOUNT_PORT=8083
     depends_on:
-      consul:
-        condition: service_healthy
       keycloak:
         condition: service_healthy
       transferdata:
@@ -246,15 +203,10 @@ services:
       dockerfile: ./gateway/Dockerfile
     network_mode: host
     environment:
-      - CONSUL_HOST=localhost
-      - CONSUL_PORT=8500
-      - KEYCLOAK_HOST=localhost
-      - KEYCLOAK_PORT=8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - GATEWAY_PORT=8081
+      - KEYCLOAK_ISSUER_URI=${KEYCLOAK_ISSUER_URI}
       - KEYCLOAK_GATEWAY_SECRET=${KEYCLOAK_GATEWAY_SECRET}
     depends_on:
-      consul:
-        condition: service_healthy
       keycloak:
         condition: service_healthy
       notifications:
@@ -275,17 +227,12 @@ services:
       dockerfile: ./frontui/Dockerfile
     network_mode: host
     environment:
-      - CONSUL_HOST=localhost
-      - CONSUL_PORT=8500
-      - GATEWAY_HOST=gateway
+      - FRONT_UI_PORT=8089
+      - GATEWAY_HOST=localhost
       - GATEWAY_PORT=8081
-      - KEYCLOAK_HOST=localhost
-      - KEYCLOAK_PORT=8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_ISSUER_URI=${KEYCLOAK_ISSUER_URI}
       - KEYCLOAK_FRONT_UI_SECRET=${KEYCLOAK_FRONT_UI_SECRET}
     depends_on:
-      consul:
-        condition: service_healthy
       keycloak:
         condition: service_healthy
       notifications:
