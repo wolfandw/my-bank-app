@@ -3,3 +3,25 @@ replicaCount: 1
 image:
   repository: notifications-image
   tag: "0.1.0"
+
+startupProbe:
+  initialDelaySeconds: 180
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 30
+  successThreshold: 1
+  httpGet:
+    port: 8080
+    path: /actuator/health
+livenessProbe:
+  initialDelaySeconds: 20
+  failureThreshold: 10
+  httpGet:
+    port: 8080
+    path: /actuator/health
+readinessProbe:
+  initialDelaySeconds: 20
+  failureThreshold: 10
+  httpGet:
+    port: 8080
+    path: /actuator/health

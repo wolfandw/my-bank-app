@@ -5,20 +5,23 @@ image:
   tag: "0.1.0"
 
 startupProbe:
-  initialDelaySeconds: 120
-  failureThreshold: 10
+  initialDelaySeconds: 180
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 30
+  successThreshold: 1
   httpGet:
+    port: 8080
     path: /actuator/health
-    port: http
 livenessProbe:
   initialDelaySeconds: 20
   failureThreshold: 10
   httpGet:
+    port: 8080
     path: /actuator/health
-    port: http
 readinessProbe:
   initialDelaySeconds: 20
   failureThreshold: 10
   httpGet:
+    port: 8080
     path: /actuator/health
-    port: http 

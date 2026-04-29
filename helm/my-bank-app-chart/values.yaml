@@ -34,6 +34,26 @@ transferdata:
     size: 1Gi
     enabled: true
 
+stringData:
+  accountDbUsername: postgres
+  accountsDbPassword: postgres
+
+  cashDbUsername: postgres
+  cashDbPassword: postgres
+
+  transferDbUsername: postgres
+  transferDbPassword: postgres
+
+  notificationsDbUsername: postgres
+  notificationsDbPassword: postgres
+
+  keycloakAccountsSecret: OJ59Qho7qss9aAAFHShOOWiiIVo3wuE7
+  keycloakCashSecret: Isq0cW1jwx9GIQypRuCX6CEozSPG3xT8
+  keycloakFrontUiSecret: 5eOiAHGLM8KvD2xxMRcCeIogKaFtnN3P
+  keycloakGatewaySecret: 27gcWzuNZoOpmR3SygtMFjXr3apPjhVW
+  keycloakNotificationsSecret: dYULgKXgzByDWxcH8SQ5PIQ9CGWLgMZ0
+  keycloakTransferSecret: 0HkSVUblZIWjdaswozGgOSwD9LpPYFDb
+
 keycloak:
   livenessProbe:
     enabled: true

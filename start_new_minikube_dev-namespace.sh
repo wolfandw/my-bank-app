@@ -116,14 +116,13 @@ helm upgrade --install my-bank-app-dev ./helm/my-bank-app-chart -n dev \
 sleep 5
 eval $(minikube -p minikube docker-env -u)
 
+echo "Поды сервисов - ожидание инициализации..."
 minikube kubectl -- wait --for=condition=ready pod -l app=notifications-chart -n dev --timeout=300s
 minikube kubectl -- wait --for=condition=ready pod -l app=accounts-chart -n dev --timeout=300s
 minikube kubectl -- wait --for=condition=ready pod -l app=cash-chart -n dev --timeout=300s
 minikube kubectl -- wait --for=condition=ready pod -l app=transfer-chart -n dev --timeout=300s
 minikube kubectl -- wait --for=condition=ready pod -l app=gateway-chart -n dev --timeout=300s
 minikube kubectl -- wait --for=condition=ready pod -l app=frontui-chart -n dev --timeout=300s
-echo "Поды сервисов готовы, ожидание инициализации (1 мин)..."
-sleep 60
 echo "Сервисы готовы и запущены..."
 
 echo ""
