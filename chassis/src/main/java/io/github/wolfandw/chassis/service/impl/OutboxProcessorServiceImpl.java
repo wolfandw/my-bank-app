@@ -6,10 +6,12 @@ import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.kafka.sender.KafkaSender;
 
 import java.net.URI;
 import java.util.UUID;
@@ -28,7 +30,8 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
 
     private static final String NOTIFICATIONS_API_UNAVAILABLE = "Сервис нотификаций недоступен: %s";
 
-    private final WebClient scheduleWebClient;
+    private final KafkaSender<String, Outbox> kafkaSender;
+    private final String topic;
     private final OutboxRepository outboxRepository;
 
     @Value("${notifications.host}")
@@ -40,11 +43,15 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
     /**
      * Создает сервис.
      *
-     * @param scheduleWebClient веб-клиент
+     * @param kafkaSender реактивный продюсер Kafka
+     * @param topic топик Kafka
      * @param outboxRepository репозиторий сообщений
      */
-    public OutboxProcessorServiceImpl(WebClient scheduleWebClient, OutboxRepository outboxRepository) {
-        this.scheduleWebClient = scheduleWebClient;
+    public OutboxProcessorServiceImpl(KafkaSender<String, Outbox> kafkaSender,
+                                      String topic,
+                                      OutboxRepository outboxRepository) {
+        this.kafkaSender = kafkaSender;
+        this.topic = topic;
         this.outboxRepository = outboxRepository;
     }
 

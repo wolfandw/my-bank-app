@@ -32,7 +32,6 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasRole('NOTIFICATIONS_SERVICE_CLIENT')")
     public Mono<String> requestNotification(UUID outboxId, UUID userId, String message) {
         LOG.debug("Notifications. Обрабатывается запрос на отправку уведомления");
         Notification notification = new Notification();
