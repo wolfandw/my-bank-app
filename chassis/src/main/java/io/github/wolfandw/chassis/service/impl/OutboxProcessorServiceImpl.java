@@ -3,6 +3,7 @@ package io.github.wolfandw.chassis.service.impl;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,8 @@ import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.kafka.sender.KafkaSender;
+import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
 
 import java.net.URI;
 import java.util.UUID;
@@ -22,23 +25,11 @@ import java.util.UUID;
 public class OutboxProcessorServiceImpl implements OutboxProcessorService {
     private static final Logger LOG = LoggerFactory.getLogger(OutboxProcessorServiceImpl.class);
 
-    private static final String SCHEME = "http";
-    private static final String NOTIFY_PATH = "/api/notifications";
-    private static final String OUTBOX_ID_PARAMETER = "outboxId";
-    private static final String USER_ID_PARAMETER = "userId";
-    private static final String MESSAGE_PARAMETER = "message";
-
     private static final String NOTIFICATIONS_API_UNAVAILABLE = "Сервис нотификаций недоступен: %s";
 
-    private final KafkaSender<String, Outbox> kafkaSender;
+    private final KafkaSender<UUID, Outbox> kafkaSender;
     private final String topic;
     private final OutboxRepository outboxRepository;
-
-    @Value("${notifications.host}")
-    private String notificationsHost;
-
-    @Value("${notifications.port}")
-    private String notificationsPort;
 
     /**
      * Создает сервис.
@@ -47,7 +38,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
      * @param topic топик Kafka
      * @param outboxRepository репозиторий сообщений
      */
-    public OutboxProcessorServiceImpl(KafkaSender<String, Outbox> kafkaSender,
+    public OutboxProcessorServiceImpl(KafkaSender<UUID, Outbox> kafkaSender,
                                       String topic,
                                       OutboxRepository outboxRepository) {
         this.kafkaSender = kafkaSender;
@@ -67,10 +58,10 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
 
     private Mono<Outbox> sendOutbox(Outbox outbox) {
         LOG.debug("Outbox -> Notifications processor. Отправка запроса на нотификацию " + outbox.getMessage());
-        return scheduleWebClient.post()
-                .uri(uriBuilder -> buildUri(uriBuilder, outbox.getId(), outbox.getUserId(), outbox.getMessage()))
-                .retrieve()
-                .bodyToMono(String.class)
+        SenderRecord<UUID, Outbox, UUID> record =
+                SenderRecord.create(new ProducerRecord<>(topic, outbox.getId(), outbox), outbox.getId());
+        return kafkaSender.send(Flux.just(record))
+                .next()
                 .flatMap(this::markSent)
                 .onErrorResume(e -> {
                     String errorMessage = NOTIFICATIONS_API_UNAVAILABLE.formatted(e.getMessage());
@@ -79,23 +70,12 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
                 });
     }
 
-    private Mono<Outbox> markSent(String sentOutboxId) {
+    private Mono<Outbox> markSent(SenderResult<UUID> senderResult) {
+        UUID sentOutboxId = senderResult.correlationMetadata();
         LOG.debug("Notifications processor -> Outbox. Запрос на нотификацию принят");
-        return outboxRepository.findById(UUID.fromString(sentOutboxId)).flatMap(outbox -> {
+        return outboxRepository.findById(sentOutboxId).flatMap(outbox -> {
             outbox.setSent(true);
             return outboxRepository.save(outbox);
         });
-    }
-
-    private URI buildUri(UriBuilder uriBuilder, UUID outboxId, UUID userId, String message) {
-        return uriBuilder
-                .scheme(SCHEME)
-                .host(notificationsHost)
-                .port(notificationsPort)
-                .path(NOTIFY_PATH)
-                .queryParam(OUTBOX_ID_PARAMETER, outboxId)
-                .queryParam(USER_ID_PARAMETER, userId)
-                .queryParam(MESSAGE_PARAMETER, message)
-                .build();
     }
 }

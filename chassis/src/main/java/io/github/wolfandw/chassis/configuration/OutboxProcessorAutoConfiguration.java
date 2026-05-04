@@ -19,6 +19,7 @@ import reactor.kafka.sender.SenderOptions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Авто-конфигурация обработки исходящих сообщений.
@@ -26,7 +27,7 @@ import java.util.Map;
 @AutoConfiguration
 public class OutboxProcessorAutoConfiguration {
     @Bean
-    public OutboxProcessorService outboxProcessorService(@Lazy KafkaSender<String, Outbox> kafkaSender,
+    public OutboxProcessorService outboxProcessorService(@Lazy KafkaSender<UUID, Outbox> kafkaSender,
                                                          @Value("${spring.kafka.topics.topic}") String topic,
                                                          OutboxRepository outboxRepository) {
         return new OutboxProcessorServiceImpl(kafkaSender, topic, outboxRepository);
@@ -38,10 +39,10 @@ public class OutboxProcessorAutoConfiguration {
     }
 
     @Bean
-    public SenderOptions<String, Outbox> senderOptions(KafkaProperties kafkaProperties) {
+    public SenderOptions<UUID, Outbox> senderOptions(KafkaProperties kafkaProperties) {
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                org.apache.kafka.common.serialization.StringSerializer.class);
+                org.apache.kafka.common.serialization.UUIDSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 org.springframework.kafka.support.serializer.JacksonJsonSerializer.class);
         return SenderOptions.create(props);
@@ -49,7 +50,7 @@ public class OutboxProcessorAutoConfiguration {
 
     @Bean
     @Lazy
-    public KafkaSender<String, Outbox> kafkaSender(SenderOptions<String, Outbox> senderOptions) {
+    public KafkaSender<UUID, Outbox> kafkaSender(SenderOptions<UUID, Outbox> senderOptions) {
         return KafkaSender.create(senderOptions);
     }
 
