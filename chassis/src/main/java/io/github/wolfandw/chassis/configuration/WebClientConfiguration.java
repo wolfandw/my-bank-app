@@ -24,33 +24,4 @@ public class WebClientConfiguration {
                 .filter(oAuth2Filter)
                 .build();
     }
-
-    @Bean
-    public ReactiveOAuth2AuthorizedClientManager scheduleAuthorizedClientManager(
-            ReactiveClientRegistrationRepository clientRegistrationRepository,
-            ReactiveOAuth2AuthorizedClientService authorizedClientService) {
-
-        AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager =
-                new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
-                        clientRegistrationRepository, authorizedClientService);
-
-        ReactiveOAuth2AuthorizedClientProvider authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
-                .clientCredentials()
-                .refreshToken()
-                .build();
-
-        authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
-        return authorizedClientManager;
-    }
-
-    @Bean
-    public WebClient scheduleWebClient(ReactiveOAuth2AuthorizedClientManager scheduleAuthorizedClientManager) {
-        ServerOAuth2AuthorizedClientExchangeFilterFunction oAuth2Filter =
-                new ServerOAuth2AuthorizedClientExchangeFilterFunction(scheduleAuthorizedClientManager);
-        oAuth2Filter.setDefaultClientRegistrationId("keycloak");
-        oAuth2Filter.setDefaultOAuth2AuthorizedClient(true);
-        return WebClient.builder()
-                .filter(oAuth2Filter)
-                .build();
-    }
 }
