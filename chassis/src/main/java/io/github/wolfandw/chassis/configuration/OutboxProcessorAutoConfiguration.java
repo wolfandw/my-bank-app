@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
 import reactor.kafka.sender.KafkaSender;
@@ -25,6 +26,7 @@ import java.util.UUID;
  * Авто-конфигурация обработки исходящих сообщений.
  */
 @AutoConfiguration
+@PropertySource("classpath:library.properties")
 public class OutboxProcessorAutoConfiguration {
     @Bean
     public OutboxProcessorService outboxProcessorService(@Lazy KafkaSender<UUID, Outbox> kafkaSender,
@@ -36,32 +38,5 @@ public class OutboxProcessorAutoConfiguration {
     @Bean
     public OutboxSchedulerService outboxScheduleService(OutboxProcessorService outboxProcessorService) {
         return new OutboxSchedulerServiceImpl(outboxProcessorService);
-    }
-
-    @Bean
-    public SenderOptions<UUID, Outbox> senderOptions(KafkaProperties kafkaProperties) {
-        Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                org.apache.kafka.common.serialization.UUIDSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                org.springframework.kafka.support.serializer.JacksonJsonSerializer.class);
-        return SenderOptions.create(props);
-    }
-
-    @Bean
-    @Lazy
-    public KafkaSender<UUID, Outbox> kafkaSender(SenderOptions<UUID, Outbox> senderOptions) {
-        return KafkaSender.create(senderOptions);
-    }
-
-    @Bean
-    public KafkaAdmin.NewTopics topics(
-            @Value("${spring.kafka.topics.partitions") int partitions,
-            @Value("${spring.kafka.topics.replicas") short replicas) {
-        return new KafkaAdmin.NewTopics(
-                TopicBuilder.name("accounts-to-notifications").partitions(partitions).replicas(replicas).build(),
-                TopicBuilder.name("cash-to-notifications").partitions(partitions).replicas(replicas).build(),
-                TopicBuilder.name("transfer-to-notifications").partitions(partitions).replicas(replicas).build(),
-                TopicBuilder.name("notifications-to-notifications").partitions(partitions).replicas(replicas).build());
     }
 }

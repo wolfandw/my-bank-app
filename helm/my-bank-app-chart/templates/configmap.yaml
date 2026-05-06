@@ -44,11 +44,5 @@ data:
   KEYCLOAK_ISSUER_URI: "http://keycloak/realms/my-bank-app-realm"
 
   KAFKA_URI: "kafka:9092"
-  KAFKA_CONSUMER_GROUP_ID: "my-bank-app-consumer"
   KAFKA_PARTITIONS: "3"
   KAFKA_REPLICAS: "1"
-
-  ACCOUNTS_TO_NOTIFICATIONS_KAFKA_TOPIC: "accounts-to-notifications"
-  CASH_TO_NOTIFICATIONS_KAFKA_TOPIC: "cash-to-notifications"
-  TRANSFER_TO_NOTIFICATIONS_KAFKA_TOPIC: "transfer-to-notifications"
-  NOTIFICATIONS_TO_NOTIFICATIONS_KAFKA_TOPIC: "notifications-to-notifications"

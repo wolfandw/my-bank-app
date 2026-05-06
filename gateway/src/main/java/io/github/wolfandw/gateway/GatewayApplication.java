@@ -1,5 +1,6 @@
 package io.github.wolfandw.gateway;
 
+import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration;
 import org.springframework.boot.SpringApplication;
@@ -18,7 +19,8 @@ import org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration;
 		DataR2dbcRepositoriesAutoConfiguration.class,
 		LiquibaseAutoConfiguration.class,
 		OutboxProcessorAutoConfiguration.class,
-		SecurityWebFilterConfiguration.class
+		SecurityWebFilterConfiguration.class,
+		KafkaProducerAutoConfiguration.class
 })
 public class GatewayApplication {
     /**

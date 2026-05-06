@@ -1,5 +1,6 @@
 package io.github.wolfandw.notifications;
 
+import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration;
 import io.github.wolfandw.chassis.configuration.WebClientConfiguration;
@@ -11,8 +12,10 @@ import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
  * Проложение Notifications.
  */
 @SpringBootApplication(exclude = {
+        SecurityWebFilterConfiguration.class,
+        WebClientConfiguration.class,
         OutboxProcessorAutoConfiguration.class,
-        WebClientConfiguration.class
+        KafkaProducerAutoConfiguration.class
 })
 @EnableR2dbcRepositories(basePackages = {"io.github.wolfandw.notifications.repository"})
 public class NotificationsApplication {

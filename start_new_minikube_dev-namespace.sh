@@ -12,20 +12,30 @@ minikube kubectl create namespace dev
 
 eval $(minikube -p minikube docker-env)
 
-echo ""
-echo "Ждём готовности подов Postgres..."
-helm upgrade --install my-bank-app-dev ./helm/my-bank-app-chart -n dev \
+upgrade_install() {
+    local databases=$1
+    local keycloak=$2
+    local services=$3
+
+    helm upgrade --install my-bank-app-dev ./helm/my-bank-app-chart -n dev \
         -f ./helm/my-bank-app-chart/values.yaml \
         -f ./helm/my-bank-app-chart/values-dev.yaml \
-        --set global.deployDatabases=true \
-        --set global.deployKeycloak=false \
-        --set global.deployServices=false \
-        --set accounts.image.pullPolicy=Never \
+        --set global.deployDatabases="$databases" \
+        --set global.deployKeycloak="$keycloak" \
+        --set global.deployServices="$services" \
+        --set account.image.pullPolicy=Never \
         --set cash.image.pullPolicy=Never \
-        --set frontui.image.pullPolicy=Never \
+        --set front-ui.image.pullPolicy=Never \
         --set gateway.image.pullPolicy=Never \
-        --set notifications.image.pullPolicy=Never \
-        --set transfer.image.pullPolicy=Never
+        --set notification.image.pullPolicy=Never \
+        --set transfer.image.pullPolicy=Never \
+        --set kafka.enabled=true \
+        --set global.deployKafka=true
+}
+
+echo ""
+echo "Ждём готовности подов Postgres..."
+upgrade_install "true" "false" "false"
 sleep 5
 minikube kubectl -- wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql -n dev --timeout=300s
 echo ""
@@ -50,18 +60,7 @@ echo "Поды Postgres готовы"
 
 echo ""
 echo "Ждём готовности пода Keycloak (около 5 мин)..."
-helm upgrade --install my-bank-app-dev ./helm/my-bank-app-chart -n dev \
-        -f ./helm/my-bank-app-chart/values.yaml \
-        -f ./helm/my-bank-app-chart/values-dev.yaml \
-        --set global.deployDatabases=true \
-        --set global.deployKeycloak=true \
-        --set global.deployServices=false \
-        --set accounts.image.pullPolicy=Never \
-        --set cash.image.pullPolicy=Never \
-        --set frontui.image.pullPolicy=Never \
-        --set gateway.image.pullPolicy=Never \
-        --set notifications.image.pullPolicy=Never \
-        --set transfer.image.pullPolicy=Never
+upgrade_install "true" "true" "false"
 sleep 5
 minikube kubectl -- wait --for=condition=ready pod -l app.kubernetes.io/component=keycloak -n dev --timeout=360s
 
@@ -101,18 +100,7 @@ docker build . -f ./gateway/Dockerfile -t "gateway-image:0.1.0"
 docker build . -f ./notifications/Dockerfile -t "notifications-image:0.1.0"
 docker build . -f ./transfer/Dockerfile -t "transfer-image:0.1.0"
 
-helm upgrade --install my-bank-app-dev ./helm/my-bank-app-chart -n dev \
-        -f ./helm/my-bank-app-chart/values.yaml \
-        -f ./helm/my-bank-app-chart/values-dev.yaml \
-        --set global.deployDatabases=true \
-        --set global.deployKeycloak=true \
-        --set global.deployServices=true \
-        --set accounts.image.pullPolicy=Never \
-        --set cash.image.pullPolicy=Never \
-        --set frontui.image.pullPolicy=Never \
-        --set gateway.image.pullPolicy=Never \
-        --set notifications.image.pullPolicy=Never \
-        --set transfer.image.pullPolicy=Never
+upgrade_install "true" "true" "true"
 sleep 5
 eval $(minikube -p minikube docker-env -u)
 
@@ -127,16 +115,32 @@ echo "Сервисы готовы и запущены..."
 
 echo ""
 echo "Добавление keycloak и my-bank-app в /etc/hosts ..."
-echo "$(minikube ip) keycloak" | sudo tee -a /etc/hosts
-echo "$(minikube ip) my-bank-app" | sudo tee -a /etc/hosts
+HOSTS_FILE="/etc/hosts"
+MINIKUBE_IP=$(minikube ip)
+
+add_host() {
+    local ip=$1
+    local domain=$2
+    local entry="$ip $domain"
+
+    if grep -q "[[:space:]]$domain$" "$HOSTS_FILE"; then
+        echo "Запись для $domain уже существует."
+    else
+        echo "Добавляю запись: $entry"
+        echo "$entry" | sudo tee -a "$HOSTS_FILE" > /dev/null
+    fi
+}
+add_host "$MINIKUBE_IP" "keycloak"
+add_host "$MINIKUBE_IP" "my-bank-app"
 
 echo ""
 echo "Состояние сервисов ..."
 minikube kubectl -- get pods -n dev
 
 echo ""
-echo "My-bank-app успешно запущен и инициализирован по адресу: http://my-bank-app"
-
-echo ""
 echo "Запускаем helm-тесты..."
 helm test my-bank-app-dev -n dev --logs
+
+echo ""
+echo "My-bank-app успешно запущен и инициализирован по адресу: http://my-bank-app"
+

@@ -4,20 +4,13 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.NotificationsService;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.kafka.sender.KafkaSender;
-import reactor.kafka.sender.SenderRecord;
-import reactor.kafka.sender.SenderResult;
 
 import java.util.UUID;
 
@@ -29,38 +22,24 @@ public class NotificationsServiceImpl implements NotificationsService {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationsServiceImpl.class);
 
     private final NotificationsRepository notificationsRepository;
-    private final KafkaSender<UUID, Outbox> kafkaSender;
-    @Value("${spring.kafka.topics.topic")
-    private String topic;
 
     /**
      * Создает сервис.
      *
      * @param notificationsRepository репозиторий нотификаций
      */
-    public NotificationsServiceImpl(NotificationsRepository notificationsRepository,
-                                    KafkaSender<UUID, Outbox> kafkaSender) {
+    public NotificationsServiceImpl(NotificationsRepository notificationsRepository) {
         this.notificationsRepository = notificationsRepository;
-        this.kafkaSender = kafkaSender;
     }
 
-    @KafkaListener(topics = {
-            "${ACCOUNTS_TO_NOTIFICATIONS_KAFKA_TOPIC}",
-            "${CASH_TO_NOTIFICATIONS_KAFKA_TOPIC:cash-to-notifications}",
-            "${TRANSFER_TO_NOTIFICATIONS_KAFKA_TOPIC:transfer-to-notifications}"
-    }, groupId = "${KAFKA_CONSUMER_GROUP_ID}")
-    public Flux<SenderResult<UUID>> processExternal(Outbox outbox) {
-        LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию");
-        SenderRecord<UUID, Outbox, UUID> record =
-                SenderRecord.create(new ProducerRecord<>(topic, outbox.getId(), outbox), outbox.getId());
-        return kafkaSender.send(Flux.just(record));
-    }
-
-    @KafkaListener(topics = {"${NOTIFICATIONS_TO_NOTIFICATIONS_KAFKA_TOPIC}"},
-            groupId = "${KAFKA_CONSUMER_GROUP_ID}")
-    public Mono<UUID> processInternal(Outbox outbox) {
-        LOG.debug("Notifications -> Notifications. Получен запрос на нотификацию");
-        return requestNotification(outbox.getId(),outbox.getUserId(), outbox.getMessage());
+    @KafkaListener(topics = {"accounts-to-notifications",
+                             "cash-to-notifications",
+                             "transfer-to-notifications"},
+                   groupId = "my-bank-app-consumer-group",
+                   containerFactory = "kafkaListenerContainerFactory")
+    public Mono<UUID> listen(ConsumerRecord<UUID, Outbox> record) {
+        LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию, топик = " + record.topic());
+        return requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage());
     }
 
     @Override
