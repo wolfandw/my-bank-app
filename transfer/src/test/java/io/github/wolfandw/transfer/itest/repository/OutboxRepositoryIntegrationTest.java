@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Интеграционные тесты репозитория исходящих сообщений.
  */
-public class TransferRepositoryIntegrationTest extends BaseTransferIntegrationTest {
+public class OutboxRepositoryIntegrationTest extends BaseTransferIntegrationTest {
     @Test
     void findAllBySentFalseTest() {
         trxStepVerifier.create(outboxRepository.findAllBySent(false).collectList()).

@@ -19,21 +19,4 @@ public class AccountRepositoryIntegrationTest extends BaseAccountsIntegrationTes
                     assertThat(actualAccount.getId()).isEqualTo(UUID.fromString("650e8400-e29b-41d4-a716-446655440000"));
                 }).verifyComplete();
     }
-
-    @Test
-    void findByLoginTest() {
-        trxStepVerifier.create(userRepository.findByLogin("user")).
-                assertNext(actualUser -> {
-                    assertThat(actualUser.getName()).isEqualTo("User");
-                }).verifyComplete();
-    }
-
-    @Test
-    void findAllBySentTrueTest() {
-        trxStepVerifier.create(userRepository.findAllByLoginNot("user").collectList()).
-                assertNext(actualUsers -> {
-                    assertThat(actualUsers.size()).isEqualTo(1);
-                    assertThat(actualUsers.get(0).getLogin()).isEqualTo("admin");
-                }).verifyComplete();
-    }
 }

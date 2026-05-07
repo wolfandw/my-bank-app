@@ -30,8 +30,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
                         "org.springframework.boot.jdbc.autoconfigureDataSourceAutoConfiguration," +
                         "org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration," +
                         "org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration",
-                "spring.cloud.consul.enabled=false",
-                "spring.cloud.consul.config.enabled=false",
                 "spring.cloud.compatibility-verifier.enabled=false",
                 "spring.main.allow-bean-definition-overriding=true"
         }

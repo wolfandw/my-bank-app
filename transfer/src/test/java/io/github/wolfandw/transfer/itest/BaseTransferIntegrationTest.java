@@ -6,6 +6,7 @@ import io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration;
 import io.github.wolfandw.chassis.configuration.WebClientConfiguration;
 import io.github.wolfandw.chassis.itest.AbstractTestcontainersTest;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
+import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.transfer.TransferApplication;
 import io.github.wolfandw.transfer.itest.configuration.IntegrationTestConfiguration;
 import io.github.wolfandw.transfer.itest.configuration.TrxStepVerifier;
@@ -33,19 +34,14 @@ import reactor.kafka.sender.KafkaSender;
         classes = TransferApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "spring.cloud.consul.enabled=false",
-                "spring.cloud.consul.config.enabled=false",
                 "spring.cloud.compatibility-verifier.enabled=false",
                 "spring.main.allow-bean-definition-overriding=true",
                 "spring.liquibase.enabled=false"
         }
 )
-@EnableAutoConfiguration(exclude = {
-        KafkaProducerAutoConfiguration.class,
-        OutboxProcessorAutoConfiguration.class
-})
 @Import({IntegrationTestConfiguration.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@EmbeddedKafka(topics = {"transfer-to-notifications"})
 public abstract class BaseTransferIntegrationTest extends AbstractTestcontainersTest {
     @Autowired
     protected TrxStepVerifier trxStepVerifier;
@@ -55,6 +51,9 @@ public abstract class BaseTransferIntegrationTest extends AbstractTestcontainers
 
     @Autowired
     protected OutboxRepository outboxRepository;
+
+    @Autowired
+    protected OutboxProcessorService outboxProcessorService;
 
     @MockitoBean
     protected ReactiveClientRegistrationRepository clientRegistrationRepository;
