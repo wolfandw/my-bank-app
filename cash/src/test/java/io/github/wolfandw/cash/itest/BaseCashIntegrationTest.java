@@ -4,9 +4,12 @@ import io.github.wolfandw.cash.CashApplication;
 import io.github.wolfandw.cash.itest.configuration.IntegrationTestConfiguration;
 import io.github.wolfandw.cash.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.cash.service.CashService;
+import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
+import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.itest.AbstractTestcontainersTest;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
@@ -30,10 +33,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
                 "spring.cloud.consul.config.enabled=false",
                 "spring.cloud.compatibility-verifier.enabled=false",
                 "spring.main.allow-bean-definition-overriding=true",
-                "spring.liquibase.enabled=false",
-                "spring.autoconfigure.exclude=io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration"
+                "spring.liquibase.enabled=false"
         }
 )
+@EnableAutoConfiguration(exclude = {
+    KafkaProducerAutoConfiguration.class,
+    OutboxProcessorAutoConfiguration.class
+})
 @Import({IntegrationTestConfiguration.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class BaseCashIntegrationTest extends AbstractTestcontainersTest {

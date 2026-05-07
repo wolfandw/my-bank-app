@@ -1,12 +1,15 @@
 package io.github.wolfandw.cash.ctest;
 
 import io.github.wolfandw.cash.CashApplication;
+import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
+import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxSchedulerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
@@ -48,6 +51,10 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "spring.main.allow-bean-definition-overriding=true"
         }
 )
+@EnableAutoConfiguration(exclude = {
+    KafkaProducerAutoConfiguration.class,
+    OutboxProcessorAutoConfiguration.class
+})
 @AutoConfigureStubRunner(
         ids = "io.github.wolfandw:accounts:+:stubs:8083",
         stubsMode = StubRunnerProperties.StubsMode.LOCAL

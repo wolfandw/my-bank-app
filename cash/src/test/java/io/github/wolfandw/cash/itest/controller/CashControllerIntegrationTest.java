@@ -38,6 +38,7 @@ import static org.springframework.security.test.web.reactive.server.SecurityMock
                 "spring.liquibase.enabled=false",
                 "spring.autoconfigure.exclude=" +
                     "io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration," +
+                    "io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration," +
                     "org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration," +
                     "org.springframework.boot.health.autoconfigure.actuate.endpoint.HealthEndpointAutoConfiguration," +
                     "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
