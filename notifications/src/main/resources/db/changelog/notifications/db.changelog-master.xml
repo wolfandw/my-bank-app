@@ -5,6 +5,5 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <include file="000_init_notifications_table.xml" relativeToChangelogFile="true"/>
-    <include file="010_fill_data.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

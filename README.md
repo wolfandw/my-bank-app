@@ -28,30 +28,41 @@ Keycloack и Front UI развёрнуты в Kubernetes с использова
 
 Для работы с приложением необходимо клонировать репозиторий проекта, перейти в каталог проекта, собрать,
 протестировать и запустить приложение, а так же БД Postgres, сервер авторизации Keycloack и Apache Kafka.
+Для комплексного запуска всех компонентов, микросервисов в Docker использовать
+Docker Compose в корне проекта: ./docker-compose-localhost.yml
 Для комплексного запуска всех компонентов, микросервисов в Kubernetes использовать Minikube, развернутый в Docker,
 и скрипт в корне проекта: ./start_new_minikube_dev-namespace.sh
 
 ## Начало
-
 - Клонировать репозиторий продукта
 - Перейти в каталог продукта
 
 ## Сборка, тестирование
-
 - Как собирать:```mvn clean package -DskipTests=true -Dmaven.test.skip=true```
 - Как запускать тесты:```mvn test```
-  
-## Как запускать в Kubernetes
 
+## Как запускать в Docker Compose
+- Запустить в терминале```sudo docker compose -f docker-compose-localhost.yml up```
+- Проверить наличие образов приложения, Postgres, Keycloack и Consul ```sudo docker image ls```
+- Запустить в терминале```sudo docker container ls``` и убедиться, что контейнеры запущены
+- Остановить контейнеры можно командой```sudo docker compose -f docker-compose-localhost.yml dowm``` в терминале
+- Запустить заново продукт можно командой```sudo docker compose -f docker-compose-localhost.yml up``` в терминале
+
+## Как пользоваться в Docker Compose
+- Перейти по адресу: http://localhost:8089/ на страницу продукта
+- Войти в приложение как user или admin
+- Keycloak доступен по адресу: http://localhost:8080
+- UI Kafka доступен по адресу: http://localhost:8090
+
+## Как запускать в Kubernetes
 - Выполнить в терминале:```chmod +x start_new_minikube_dev-namespace.sh```
-- Запустить в терминале скрипт развертывания: старт нового кластера minikube, сборка Docker-образов, запуск Helm-чартов
-  - ```./start_new_minikube_dev-namespace.sh```
+- Запустить в терминале скрипт развертывания: старт нового кластера minikube, сборка Docker-образов, запуск Helm-чартов ```./start_new_minikube_dev-namespace.sh```
 - Дождаться загрузки и инициализации сервисов и прохождения helm-тестов
   - Для оценки состояния minikube можно запустить дашборд: ```minikube dashboard```
 
-## Как пользоваться
+## Как пользоваться в Kubernetes
 - Перейти по адресу: http://my-bank-app/ на страницу продукта
 - Войти в приложение как user или admin
 - Keycloak доступен по адресу: http://keycloak/
-- UI Kafka доступен по адресу: http://localhost:8888
-  - предварительно, необходимо пробросить порты командой в терминале: ```minikube kubectl -- port-forward -n dev svc/kafka-ui-service 8888:8080```
+- UI Kafka доступен по адресу: http://localhost:8090
+  - предварительно, необходимо пробросить порты командой в терминале: ```minikube kubectl -- port-forward -n dev svc/kafka-ui-service 8090:8080```

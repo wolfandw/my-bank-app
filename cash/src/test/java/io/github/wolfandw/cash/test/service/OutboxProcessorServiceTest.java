@@ -7,7 +7,6 @@ import io.github.wolfandw.chassis.service.impl.OutboxProcessorServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
@@ -41,7 +40,7 @@ public class OutboxProcessorServiceTest {
 
     @BeforeEach
     void setUp() {
-        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender, "cash-to-notifications", outboxRepository);
+        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender, "${spring.kafka.topics.topic}", outboxRepository);
     }
 
     @Test

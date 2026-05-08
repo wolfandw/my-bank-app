@@ -21,9 +21,15 @@ spec:
             - containerPort: 8080
           env:
             - name: KAFKA_CLUSTERS_0_NAME
-              value: "my-bank-app-cluster"
+              valueFrom:
+                configMapKeyRef:
+                  name: my-bank-app-config
+                  key: KAFKA_CLUSTERS_NAME
             - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
-              value: "kafka:9092"
+              valueFrom:
+                configMapKeyRef:
+                  name: my-bank-app-config
+                  key: KAFKA_URI
             - name: KAFKA_CLUSTERS_0_METRICS_PORT
               value: "9997"
 ---

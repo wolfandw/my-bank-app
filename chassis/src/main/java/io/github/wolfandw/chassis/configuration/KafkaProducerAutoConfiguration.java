@@ -15,7 +15,9 @@ import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderOptions;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Авто-конфигурация продюсера Kafka.
@@ -43,11 +45,14 @@ public class KafkaProducerAutoConfiguration {
 
     @Bean
     public KafkaAdmin.NewTopics topics(
+            @Value("${accounts.kafka.topic}") String accountsTopic,
+            @Value("${cash.kafka.topic}") String cashTopic,
+            @Value("${transfer.kafka.topic}") String transferTopic,
             @Value("${spring.kafka.topics.partitions}") int partitions,
             @Value("${spring.kafka.topics.replicas}") short replicas) {
         return new KafkaAdmin.NewTopics(
-                TopicBuilder.name("accounts-to-notifications").partitions(partitions).replicas(replicas).build(),
-                TopicBuilder.name("cash-to-notifications").partitions(partitions).replicas(replicas).build(),
-                TopicBuilder.name("transfer-to-notifications").partitions(partitions).replicas(replicas).build());
+                TopicBuilder.name(accountsTopic).partitions(partitions).replicas(replicas).build(),
+                TopicBuilder.name(cashTopic).partitions(partitions).replicas(replicas).build(),
+                TopicBuilder.name(transferTopic).partitions(partitions).replicas(replicas).build());
     }
 }

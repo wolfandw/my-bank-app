@@ -3,6 +3,8 @@ package io.github.wolfandw.frontui.service.impl;
 import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
+import io.github.wolfandw.frontui.exception.FrontUiException;
+import io.github.wolfandw.frontui.exception.FrontUiRedirectException;
 import io.github.wolfandw.frontui.service.FrontUiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +18,6 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.UUID;
-import java.util.function.Function;
 
 /**
  * Реализация {@link FrontUiService}
@@ -39,6 +39,8 @@ public class FrontUiServiceImpl implements FrontUiService {
     private static final String RECIPIENT_PARAMETER = "recipient";
 
     private static final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
+    private static final String CASH_API_UNAVAILABLE = "Сервис наличных недоступен: %s";
+    private static final String TRANSFER_API_UNAVAILABLE = "Сервис переводов недоступен: %s";
 
     private final WebClient webClient;
 
@@ -65,10 +67,7 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .uri(uriBuilder -> getUriBuilder(uriBuilder, ACCOUNT_PATH).build())
                 .retrieve()
                 .bodyToMono(AccountDto.class)
-                .onErrorResume(e -> {
-                    LOG.error(ACCOUNTS_API_UNAVAILABLE.formatted(e.getMessage()), e);
-                    return Mono.empty();
-                });
+                .onErrorResume(e -> Mono.error(new FrontUiException(ACCOUNTS_API_UNAVAILABLE, e)));
     }
 
     @Override
@@ -79,7 +78,7 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .uri(uriBuilder -> builChangeDatadUri(getUriBuilder(uriBuilder, ACCOUNT_PATH), name, birthdate))
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
-                .onErrorResume(onApiError(ACCOUNTS_API_UNAVAILABLE));
+                .onErrorResume(e -> Mono.error(new FrontUiRedirectException(ACCOUNTS_API_UNAVAILABLE, e)));
     }
 
     @Override
@@ -90,7 +89,7 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .uri(uriBuilder -> buildChangeCashUri(getUriBuilder(uriBuilder, CASH_PATH), value, action))
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
-                .onErrorResume(onApiError("Сервис наличных недоступен: %s"));
+                .onErrorResume(e -> Mono.error(new FrontUiRedirectException(CASH_API_UNAVAILABLE, e)));
     }
 
     @Override
@@ -101,7 +100,7 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .uri(uriBuilder -> buildTransferCashUri(getUriBuilder(uriBuilder, TRANSFER_PATH), value, recipient))
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
-                .onErrorResume(onApiError("Сервис переводов недоступен: %s"));
+                .onErrorResume(e -> Mono.error(new FrontUiRedirectException(TRANSFER_API_UNAVAILABLE, e)));
     }
 
     private UriBuilder getUriBuilder(UriBuilder uriBuilder, String path) {
@@ -131,13 +130,5 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .queryParam(NAME_PARAMETER, name)
                 .queryParam(BIRTHDATE_PARAMETER, birthdate)
                 .build();
-    }
-
-    private Function<Throwable, Mono<? extends OperationResultDto>> onApiError(String service) {
-        return e -> {
-            String errorMessage = service.formatted(e.getMessage());
-            LOG.error(errorMessage, e);
-            return Mono.just(new OperationResultDto(new UUID(0, 0), null, false, errorMessage));
-        };
     }
 }

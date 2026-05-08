@@ -6,7 +6,6 @@ import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.impl.NotificationsServiceImpl;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.MockConsumer;
-import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.apache.kafka.common.TopicPartition;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
@@ -17,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.test.hamcrest.KafkaMatchers;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,7 +27,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Модульный тест сервиса уведомлений.
@@ -41,7 +41,7 @@ public class NotificationsServiceTest {
     private NotificationsServiceImpl notificationsService;
 
     @ParameterizedTest
-    @ValueSource(strings = {"accounts-to-notifications", "cash-to-notifications", "transfer-to-notifications"})
+    @ValueSource(strings = {"${accounts.kafka.topic}", "@{cash.kafka.topic}", "@{transfer.kafka.topic}"})
     void consumerNotificationTest(String topic) {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
@@ -63,19 +63,28 @@ public class NotificationsServiceTest {
     }
 
     @Test
-    void requestNotificationTest() {
+    void processDeletingSentNotificationsTest() {
+        when(notificationsRepository.deleteAllBySent(any(Boolean.class))).thenReturn(Mono.empty());
+        StepVerifier.create(notificationsService.processDeleteSentNotifications()).verifyComplete();
+        verify(notificationsRepository, times(1)).deleteAllBySent(any(Boolean.class));
+    }
+
+    @Test
+    void processSendingUnsentOutboxTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Notification notification = new Notification();
         notification.setUserId(outboxId);
         notification.setOutboxId(outboxId);
         notification.setMessage("test message");
+        when(notificationsRepository.findAllBySent(any(Boolean.class)))
+                .thenReturn(Flux.just(notification));
+
         when(notificationsRepository.save(any(Notification.class)))
                 .thenReturn(Mono.just(notification));
-        when(notificationsRepository.delete(any(Notification.class)))
-                .thenReturn(Mono.empty());
-        StepVerifier.create(notificationsService.requestNotification(outboxId, outboxId, "test message")).
-                consumeNextWith(actualOutboxId -> {
-                    assertThat(actualOutboxId).isEqualTo(outboxId);
+
+        StepVerifier.create(notificationsService.processSendUnsentNotifications().collectList()).
+                consumeNextWith(actualResult -> {
+                    assertThat(actualResult.get(0).getMessage().startsWith("test message")).isTrue();
                 }).verifyComplete();
     }
 }

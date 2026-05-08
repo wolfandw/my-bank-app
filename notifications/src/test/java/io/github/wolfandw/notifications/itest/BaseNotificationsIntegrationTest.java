@@ -1,29 +1,23 @@
 package io.github.wolfandw.notifications.itest;
 
-import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration;
 import io.github.wolfandw.chassis.configuration.WebClientConfiguration;
-import io.github.wolfandw.chassis.itest.AbstractTestcontainersTest;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.NotificationsApplication;
 import io.github.wolfandw.notifications.itest.configuration.IntegrationTestConfiguration;
-import io.github.wolfandw.notifications.itest.configuration.TrxStepVerifier;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.NotificationsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.kafka.sender.KafkaSender;
 
 import java.util.UUID;
@@ -49,11 +43,8 @@ import java.util.UUID;
 })
 @Import({IntegrationTestConfiguration.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@EmbeddedKafka(topics = {"accounts-to-notifications", "cash-to-notifications", "transfer-to-notifications"})
+@EmbeddedKafka(topics = {"${accounts.kafka.topic}", "${cash.kafka.topic}", "${transfer.kafka.topic}"})
 public abstract class BaseNotificationsIntegrationTest extends AbstractTestcontainersTest {
-    @Autowired
-    protected TrxStepVerifier trxStepVerifier;
-
     @Autowired
     protected NotificationsService notificationsService;
 
@@ -62,6 +53,9 @@ public abstract class BaseNotificationsIntegrationTest extends AbstractTestconta
 
     @Autowired
     protected KafkaSender<UUID, Outbox> kafkaSenderTest;
+
+    @Autowired
+    protected EmbeddedKafkaBroker embeddedKafkaBroker;
 
     @DynamicPropertySource
     static void specificProperties(DynamicPropertyRegistry registry) {

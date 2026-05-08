@@ -8,6 +8,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -35,7 +36,7 @@ public class TransferServiceIntegrationTest extends BaseTransferIntegrationTest 
 
     @Test
     void transferCashIsUnauthorizedTest() {
-        trxStepVerifier.create(transferService.transferCash("user", BigDecimal.TEN, "recipient"))
+        StepVerifier.create(transferService.transferCash("user", BigDecimal.TEN, "recipient"))
                 .verifyError(AuthorizationDeniedException.class);
     }
 
@@ -52,7 +53,7 @@ public class TransferServiceIntegrationTest extends BaseTransferIntegrationTest 
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(transferService.transferCash("user", BigDecimal.TEN, "recipient")).
+        StepVerifier.create(transferService.transferCash("user", BigDecimal.TEN, "recipient")).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();

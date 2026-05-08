@@ -1,14 +1,11 @@
 package io.github.wolfandw.transfer.itest.controller;
 
-import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
-import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.transfer.TransferApplication;
 import io.github.wolfandw.transfer.service.TransferService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

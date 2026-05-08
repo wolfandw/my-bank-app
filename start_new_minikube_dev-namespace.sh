@@ -20,6 +20,7 @@ upgrade_install() {
     helm upgrade --install my-bank-app-dev ./helm/my-bank-app-chart -n dev \
         -f ./helm/my-bank-app-chart/values.yaml \
         -f ./helm/my-bank-app-chart/values-dev.yaml \
+        -f ./helm/my-bank-app-chart/values-secrets.yaml \
         --set global.deployDatabases="$databases" \
         --set global.deployKeycloak="$keycloak" \
         --set global.deployServices="$services" \

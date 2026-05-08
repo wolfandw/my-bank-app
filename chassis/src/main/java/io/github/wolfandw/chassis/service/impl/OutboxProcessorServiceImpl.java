@@ -59,8 +59,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
                 .next()
                 .flatMap(this::markSent)
                 .onErrorResume(e -> {
-                    String errorMessage = NOTIFICATIONS_API_UNAVAILABLE.formatted(e.getMessage());
-                    LOG.error(errorMessage, e);
+                    LOG.error(NOTIFICATIONS_API_UNAVAILABLE.formatted(e.getMessage()), e);
                     return Mono.empty();
                 });
     }

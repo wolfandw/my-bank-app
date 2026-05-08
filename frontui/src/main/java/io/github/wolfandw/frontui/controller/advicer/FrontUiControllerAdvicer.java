@@ -1,7 +1,10 @@
 package io.github.wolfandw.frontui.controller.advicer;
 
+import io.github.wolfandw.frontui.exception.FrontUiException;
+import io.github.wolfandw.frontui.exception.FrontUiRedirectException;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.dao.DataAccessException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,6 +13,8 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 
 /**
@@ -17,9 +22,44 @@ import java.util.NoSuchElementException;
  */
 @ControllerAdvice
 public class FrontUiControllerAdvicer {
+    private static final Logger LOG = LoggerFactory.getLogger(FrontUiControllerAdvicer.class);
+
     private static final String TEMPLATE_ERROR = "error";
     private static final String ATTRIBUTE_ERROR = "error";
     private static final String ATTRIBUTE_STATUS = "status";
+
+    /**
+     * Обрабатывает исключение FrontUiRedirectException.
+     * Не является критичным для отображается страницы приложения.
+     * Отображается на странице приложения.
+     *
+     * @param e исключение типа FrontUiRedirectException
+     * @return имя шаблона ошибки
+     */
+    @ExceptionHandler(FrontUiRedirectException.class)
+    public Mono<String> handleFrontUiRedirectException(FrontUiRedirectException e) {
+        LOG.warn(e.getMessage(), e);
+        return Mono.just("redirect:/account?" + ATTRIBUTE_ERROR + "=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Обрабатывает исключение FrontUiException.
+     * Является критичным для отображения страницы приложения.
+     * Отображается на отдельной странице ошибок.
+     *
+     * @param e исключение типа FrontUiException
+     * @return имя шаблона ошибки
+     */
+    @ExceptionHandler(FrontUiException.class)
+    public Mono<Rendering> handleFrontUiException(FrontUiException e) {
+        LOG.error(e.getMessage(), e);
+        return Mono.just(
+                Rendering.view(TEMPLATE_ERROR)
+                        .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                        .build()
+        );
+    }
 
     /**
      * Обрабатывает исключение IllegalArgumentException.

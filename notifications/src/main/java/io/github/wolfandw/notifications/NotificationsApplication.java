@@ -7,6 +7,7 @@ import io.github.wolfandw.chassis.configuration.WebClientConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Проложение Notifications.
@@ -17,6 +18,7 @@ import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
         OutboxProcessorAutoConfiguration.class,
         KafkaProducerAutoConfiguration.class
 })
+@EnableScheduling
 @EnableR2dbcRepositories(basePackages = {"io.github.wolfandw.notifications.repository"})
 public class NotificationsApplication {
     /**

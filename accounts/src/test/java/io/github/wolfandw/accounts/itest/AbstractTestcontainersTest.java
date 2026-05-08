@@ -1,5 +1,6 @@
-package io.github.wolfandw.chassis.itest;
+package io.github.wolfandw.accounts.itest;
 
+import io.github.wolfandw.chassis.model.Outbox;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -7,6 +8,11 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.IntStream;
 
 /**
  * Абстрактный класс для тестов с Testcontainers.
@@ -36,5 +42,21 @@ public abstract class AbstractTestcontainersTest {
         registry.add("spring.liquibase.password", postgreSQLContainer::getPassword);
         registry.add("spring.liquibase.contexts",  () -> "dev");
         registry.add("spring.liquibase.enabled", () -> "true");
+    }
+
+    protected List<Outbox> getTestOutboxes() {
+        List<Outbox> testOutboxes = new ArrayList<>(getOutboxes(true));
+        testOutboxes.addAll(getOutboxes(false));
+        return testOutboxes;
+    }
+
+    private List<Outbox> getOutboxes(boolean sent) {
+        return IntStream.range(0, 3).mapToObj(i -> {
+            Outbox outbox = new Outbox();
+            outbox.setUserId(UUID.randomUUID());
+            outbox.setMessage("test message " + i);
+            outbox.setSent(sent);
+            return outbox;
+        }).toList();
     }
 }

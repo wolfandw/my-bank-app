@@ -4,30 +4,21 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.impl.OutboxProcessorServiceImpl;
-import org.apache.kafka.clients.producer.MockProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.UUIDSerializer;
-import org.apache.kafka.test.MockPartitioner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.kafka.sender.KafkaSender;
-import reactor.kafka.sender.SenderRecord;
 import reactor.kafka.sender.SenderResult;
 import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -49,7 +40,7 @@ public class OutboxProcessorServiceTest {
 
     @BeforeEach
     void setUp() {
-        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender, "accounts-to-notifications", outboxRepository);
+        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender, "${spring.kafka.topics.topic}", outboxRepository);
     }
 
     @Test

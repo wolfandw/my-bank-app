@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -32,37 +32,42 @@ public class NotificationsServiceImpl implements NotificationsService {
         this.notificationsRepository = notificationsRepository;
     }
 
-    @KafkaListener(topics = {"accounts-to-notifications",
-                             "cash-to-notifications",
-                             "transfer-to-notifications"},
-                   groupId = "my-bank-app-consumer-group",
+    @KafkaListener(topics = {"${accounts.kafka.topic}",
+                             "${cash.kafka.topic}",
+                             "${transfer.kafka.topic}"},
+                   groupId = "${notifications.kafka.consumer.group-id}",
                    containerFactory = "kafkaListenerContainerFactory")
-    public Mono<UUID> listen(ConsumerRecord<UUID, Outbox> record) {
+    public void listen(ConsumerRecord<UUID, Outbox> record) {
         LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию, топик = " + record.topic());
-        return requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage());
+        requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage()).subscribe();
     }
 
     @Override
-    @Transactional
-    public Mono<UUID> requestNotification(UUID outboxId, UUID userId, String message) {
+    public Flux<Notification> processSendUnsentNotifications() {
+        return notificationsRepository.findAllBySent(false).flatMap(this::sendNotification);
+    }
+
+    @Override
+    public Mono<Void> processDeleteSentNotifications() {
+        return notificationsRepository.deleteAllBySent(true);
+    }
+
+    private Mono<Notification> requestNotification(UUID outboxId, UUID userId, String message) {
         LOG.debug("Notifications. Обрабатывается запрос на отправку уведомления");
         Notification notification = new Notification();
         notification.setUserId(userId);
         notification.setOutboxId(outboxId);
         notification.setMessage(message);
-        return notificationsRepository.save(notification).flatMap(savedNotification -> {
-            LOG.debug("Notifications. Уведомление на отправку принято: '{}'", savedNotification.getMessage());
-            savedNotification.setSent(true);
-            return notificationsRepository.save(savedNotification).map(sentNotification -> {
-                LOG.debug("Notifications. Уведомление отправлено: '{}'", savedNotification.getMessage());
+        return notificationsRepository.save(notification);
+    }
 
-                // собственно отправка уведомления
-                System.out.println("****************");
-                System.out.println("* Notification * - Уведомление отправлено: " + savedNotification.getMessage());
-                System.out.println("****************");
-
-                return notificationsRepository.delete(sentNotification);
-            }).thenReturn(outboxId);
+    private Mono<Notification> sendNotification(Notification notification) {
+        LOG.debug("Notifications. Отправка нотификации " + notification.getMessage());
+        notification.setSent(true);
+        return notificationsRepository.save(notification).map(sentNotification -> {
+            // собственно отправка уведомления
+            LOG.info("Notifications. Уведомление отправлено: '{}'", sentNotification.getMessage());
+            return sentNotification;
         });
     }
 }
