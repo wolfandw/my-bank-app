@@ -35,24 +35,24 @@ transferdata:
     enabled: true
 
 stringData:
-  accountDbUsername: postgres
-  accountsDbPassword: postgres
+  accountDbUsername: "username"
+  accountsDbPassword: "password"
 
-  cashDbUsername: postgres
-  cashDbPassword: postgres
+  cashDbUsername: "username"
+  cashDbPassword: "password"
 
-  transferDbUsername: postgres
-  transferDbPassword: postgres
+  transferDbUsername: "username"
+  transferDbPassword: "password"
 
-  notificationsDbUsername: postgres
-  notificationsDbPassword: postgres
+  notificationsDbUsername: "username"
+  notificationsDbPassword: "password"
 
-  keycloakAccountsSecret: OJ59Qho7qss9aAAFHShOOWiiIVo3wuE7
-  keycloakCashSecret: Isq0cW1jwx9GIQypRuCX6CEozSPG3xT8
-  keycloakFrontUiSecret: 5eOiAHGLM8KvD2xxMRcCeIogKaFtnN3P
-  keycloakGatewaySecret: 27gcWzuNZoOpmR3SygtMFjXr3apPjhVW
-  keycloakNotificationsSecret: dYULgKXgzByDWxcH8SQ5PIQ9CGWLgMZ0
-  keycloakTransferSecret: 0HkSVUblZIWjdaswozGgOSwD9LpPYFDb
+  keycloakAccountsSecret: "secret"
+  keycloakCashSecret: "secret"
+  keycloakFrontUiSecret: "secret"
+  keycloakGatewaySecret: "secret"
+  keycloakNotificationsSecret: "secret"
+  keycloakTransferSecret: "secret"
 
 keycloak:
   livenessProbe:
@@ -170,3 +170,49 @@ keycloak:
 
   persistence:
     deployPostgresql: true
+
+kafka:
+  fullnameOverride: "kafka"
+  podSecurityContext:
+    enabled: false
+  containerSecurityContext:
+    enabled: false
+
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/kafka
+    tag: "4.0.0-debian-12-r10"
+
+  kraft:
+    enabled: true
+    clusterId: "MkU3OEVBNTcwNTJENDM2Qk"
+
+  extraConfig: |
+    offsets.topic.replication.factor=1
+    transaction.state.log.replication.factor=1
+    transaction.state.log.min.isr=1
+    default.replication.factor=1
+    min.insync.replicas=1
+
+  controller:
+    replicaCount: 1
+
+  broker:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 2Gi
+
+  listeners:
+    client:
+      protocol: PLAINTEXT
+    controller:
+      protocol: PLAINTEXT
+
+  provisioning:
+    enabled: false
+
+  sasl:
+    enabled: false
+  rbac:
+    create: false

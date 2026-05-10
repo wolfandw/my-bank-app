@@ -66,9 +66,8 @@ public class CashServiceImpl implements CashService {
                 .bodyToMono(OperationResultDto.class)
                 .flatMap(operationResultDto -> outbox(operationResultDto).thenReturn(operationResultDto))
                 .onErrorResume(e -> {
-                    String errorMessage = ACCOUNTS_API_UNAVAILABLE.formatted(e.getMessage());
-                    LOG.error(errorMessage, e);
-                    return Mono.just(new OperationResultDto(new UUID(0, 0), login,false, errorMessage));
+                    LOG.error(ACCOUNTS_API_UNAVAILABLE.formatted(e.getMessage()), e);
+                    return Mono.error(e);
                 });
     }
 

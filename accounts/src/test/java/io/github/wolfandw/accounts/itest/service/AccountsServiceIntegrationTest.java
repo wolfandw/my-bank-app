@@ -11,6 +11,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,7 +41,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
 
     @Test
     void getAccountIsUnauthorizedTest() {
-        trxStepVerifier.create(accountsService.getAccount("user"))
+        StepVerifier.create(accountsService.getAccount("user"))
                 .verifyError(AuthorizationDeniedException.class);
     }
 
@@ -60,7 +61,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         when(responseSpec.bodyToMono(AccountDto.class))
                 .thenReturn(Mono.just(accountDto));
 
-        trxStepVerifier.create(accountsService.getAccount("user")).
+        StepVerifier.create(accountsService.getAccount("user")).
                 consumeNextWith(actualAccountDto -> {
                     assertThat(actualAccountDto.id()).isEqualTo(UUID.fromString("650e8400-e29b-41d4-a716-446655440000"));
                     assertThat(actualAccountDto.user()).isEqualTo(accountDto.user());
@@ -69,7 +70,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
 
     @Test
     void changeCashIsUnauthorizedTest() {
-        trxStepVerifier.create(accountsService.changeCash("user", BigDecimal.TEN, CashAction.PUT))
+        StepVerifier.create(accountsService.changeCash("user", BigDecimal.TEN, CashAction.PUT))
                 .verifyError(AuthorizationDeniedException.class);
     }
 
@@ -86,7 +87,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(accountsService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(accountsService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();
@@ -94,7 +95,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
 
     @Test
     void transferCashIsUnauthorizedTest() {
-        trxStepVerifier.create(accountsService.transferCash("user", BigDecimal.TEN, "admin"))
+        StepVerifier.create(accountsService.transferCash("user", BigDecimal.TEN, "admin"))
                 .verifyError(AuthorizationDeniedException.class);
     }
 
@@ -111,7 +112,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(accountsService.transferCash("user", BigDecimal.TEN, "admin")).
+        StepVerifier.create(accountsService.transferCash("user", BigDecimal.TEN, "admin")).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();
@@ -119,7 +120,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
 
     @Test
     void changeUserDataIsUnauthorizedTest() {
-        trxStepVerifier.create(userService.changeUserData("user","User", LocalDate.of(1999, 1, 1)))
+        StepVerifier.create(userService.changeUserData("user","User", LocalDate.of(1999, 1, 1)))
                 .verifyError(AuthorizationDeniedException.class);
     }
 
@@ -136,7 +137,7 @@ public class AccountsServiceIntegrationTest extends BaseAccountsIntegrationTest 
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(userService.changeUserData("user","User", LocalDate.of(1999, 1, 1))).
+        StepVerifier.create(userService.changeUserData("user","User", LocalDate.of(1999, 1, 1))).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();

@@ -1,16 +1,24 @@
 package io.github.wolfandw.notifications;
 
+import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
 import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
+import io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration;
+import io.github.wolfandw.chassis.configuration.WebClientConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Проложение Notifications.
  */
 @SpringBootApplication(exclude = {
-        OutboxProcessorAutoConfiguration.class
+        SecurityWebFilterConfiguration.class,
+        WebClientConfiguration.class,
+        OutboxProcessorAutoConfiguration.class,
+        KafkaProducerAutoConfiguration.class
 })
+@EnableScheduling
 @EnableR2dbcRepositories(basePackages = {"io.github.wolfandw.notifications.repository"})
 public class NotificationsApplication {
     /**

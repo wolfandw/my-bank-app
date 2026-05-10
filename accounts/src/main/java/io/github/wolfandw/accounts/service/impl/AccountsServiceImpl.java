@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
@@ -64,11 +65,7 @@ public class AccountsServiceImpl implements AccountsService {
             List<UserDto> userDtoList = tuple.getT2();
             accountDto.users().addAll(userDtoList);
             return accountDto;
-        })
-        .onErrorResume(e -> {
-            LOG.error(e.getMessage());
-            return Mono.empty();
-        });
+        }).switchIfEmpty(Mono.error(new NoSuchElementException("Accounts. Не удалось найти информацию о пользователе: %s".formatted(login))));
     }
 
     @Override
@@ -84,7 +81,7 @@ public class AccountsServiceImpl implements AccountsService {
                             return Mono.just(new OperationResultDto(user.getId(),
                                     login,
                                     false,
-                                    "Accounts. Недостаточно средств на счету"));
+                                    "Accounts. Недостаточно средств на счете"));
                         } else {
                             account.setBalance(currentBalance.subtract(value));
                             return accountRepository.save(account).
@@ -102,7 +99,7 @@ public class AccountsServiceImpl implements AccountsService {
                                         "Accounts. Внесено %s руб".formatted(value.toPlainString())));
                     }
                 }
-        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(new UUID(0, 0), login, false, "Accounts. Не удалось изменить состояние счета"))));
+        )).switchIfEmpty(Mono.error(new NoSuchElementException("Accounts. Не удалось изменить состояние счета")));
     }
 
     @Override
@@ -114,7 +111,7 @@ public class AccountsServiceImpl implements AccountsService {
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
                     if (currentBalance.compareTo(value) < 0) {
-                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счету"));
+                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете"));
                     }
                     account.setBalance(currentBalance.subtract(value));
                     return userRepository.findByLogin(recipient).flatMap(userRecipient -> accountRepository.findByUserId(userRecipient.getId()).flatMap(
@@ -129,7 +126,7 @@ public class AccountsServiceImpl implements AccountsService {
                                                 "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient)));
                             }));
                 }
-        )).switchIfEmpty(Mono.defer(() -> Mono.just(new OperationResultDto(new UUID(0, 0), login, false, "Accounts. удалось выполнить перевод со счета"))));
+        )).switchIfEmpty(Mono.error(new NoSuchElementException("Accounts. Не удалось выполнить перевод со счета")));
     }
 
     private Mono<User> getOrCreateUser(String login) {

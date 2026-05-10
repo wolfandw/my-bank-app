@@ -1,13 +1,15 @@
 package io.github.wolfandw.notifications.service.impl;
 
+import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.NotificationsService;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -30,28 +32,42 @@ public class NotificationsServiceImpl implements NotificationsService {
         this.notificationsRepository = notificationsRepository;
     }
 
+    @KafkaListener(topics = {"${accounts.kafka.topic}",
+                             "${cash.kafka.topic}",
+                             "${transfer.kafka.topic}"},
+                   groupId = "${notifications.kafka.consumer.group-id}",
+                   containerFactory = "kafkaListenerContainerFactory")
+    public void listen(ConsumerRecord<UUID, Outbox> record) {
+        LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию, топик = " + record.topic());
+        requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage()).subscribe();
+    }
+
     @Override
-    @Transactional
-    @PreAuthorize("hasRole('NOTIFICATIONS_SERVICE_CLIENT')")
-    public Mono<String> requestNotification(UUID outboxId, UUID userId, String message) {
+    public Flux<Notification> processSendUnsentNotifications() {
+        return notificationsRepository.findAllBySent(false).flatMap(this::sendNotification);
+    }
+
+    @Override
+    public Mono<Void> processDeleteSentNotifications() {
+        return notificationsRepository.deleteAllBySent(true);
+    }
+
+    private Mono<Notification> requestNotification(UUID outboxId, UUID userId, String message) {
         LOG.debug("Notifications. Обрабатывается запрос на отправку уведомления");
         Notification notification = new Notification();
         notification.setUserId(userId);
         notification.setOutboxId(outboxId);
         notification.setMessage(message);
-        return notificationsRepository.save(notification).flatMap(savedNotification -> {
-            LOG.debug("Notifications. Уведомление на отправку принято: '{}'", savedNotification.getMessage());
-            savedNotification.setSent(true);
-            return notificationsRepository.save(savedNotification).map(sentNotification -> {
-                LOG.debug("Notifications. Уведомление отправлено: '{}'", savedNotification.getMessage());
+        return notificationsRepository.save(notification);
+    }
 
-                // собственно отправка уведомления
-                System.out.println("****************");
-                System.out.println("* Notification * - Уведомление отправлено: " + savedNotification.getMessage());
-                System.out.println("****************");
-
-                return notificationsRepository.delete(sentNotification);
-            }).thenReturn(outboxId.toString());
+    private Mono<Notification> sendNotification(Notification notification) {
+        LOG.debug("Notifications. Отправка нотификации " + notification.getMessage());
+        notification.setSent(true);
+        return notificationsRepository.save(notification).map(sentNotification -> {
+            // собственно отправка уведомления
+            LOG.info("Notifications. Уведомление отправлено: '{}'", sentNotification.getMessage());
+            return sentNotification;
         });
     }
 }

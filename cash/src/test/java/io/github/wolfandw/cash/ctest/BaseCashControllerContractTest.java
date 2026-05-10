@@ -2,12 +2,15 @@ package io.github.wolfandw.cash.ctest;
 
 import io.github.wolfandw.cash.CashApplication;
 import io.github.wolfandw.cash.service.CashService;
+import io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration;
+import io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.restassured.module.webtestclient.RestAssuredWebTestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,19 +40,20 @@ import static org.springframework.security.test.web.reactive.server.SecurityMock
                 "server.port=0",
                 "spring.liquibase.enabled=false",
                 "spring.autoconfigure.exclude=" +
-                        "io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration," +
                         "org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration," +
                         "org.springframework.boot.health.autoconfigure.actuate.endpoint.HealthEndpointAutoConfiguration," +
                         "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
                         "org.springframework.boot.jdbc.autoconfigureDataSourceAutoConfiguration," +
                         "org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration," +
                         "org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration",
-                "spring.cloud.consul.enabled=false",
-                "spring.cloud.consul.config.enabled=false",
                 "spring.cloud.compatibility-verifier.enabled=false",
                 "spring.main.allow-bean-definition-overriding=true"
         }
 )
+@EnableAutoConfiguration(exclude = {
+    KafkaProducerAutoConfiguration.class,
+    OutboxProcessorAutoConfiguration.class
+})
 @ActiveProfiles("contract-test")
 @AutoConfigureWebTestClient
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

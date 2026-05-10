@@ -37,14 +37,13 @@ import static org.springframework.security.test.web.reactive.server.SecurityMock
                 "spring.liquibase.enabled=false",
                 "spring.autoconfigure.exclude=" +
                     "io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration," +
+                    "io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration," +
                     "org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration," +
                     "org.springframework.boot.health.autoconfigure.actuate.endpoint.HealthEndpointAutoConfiguration," +
                     "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
                     "org.springframework.boot.jdbc.autoconfigureDataSourceAutoConfiguration," +
                     "org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration," +
                     "org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAutoConfiguration",
-                "spring.cloud.consul.enabled=false",
-                "spring.cloud.consul.config.enabled=false",
                 "spring.cloud.compatibility-verifier.enabled=false",
                 "spring.main.allow-bean-definition-overriding=true"
         }

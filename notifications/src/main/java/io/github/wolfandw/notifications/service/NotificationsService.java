@@ -1,20 +1,20 @@
 package io.github.wolfandw.notifications.service;
 
+import io.github.wolfandw.notifications.model.Notification;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 /**
  * Сервис нотификаций.
  */
 public interface NotificationsService {
     /**
-     * Запрашивает нотификацию.
-     *
-     * @param outboxId идентификатор исходящего сообщения
-     * @param userId идентификатор получателя
-     * @param message сообщение
-     * @return идентификатор и признак успешной регистрации сообщения
+     * Осуществляет отправку не отправленных нотификаций.
      */
-    Mono<String> requestNotification(UUID outboxId, UUID userId, String message);
+    Flux<Notification> processSendUnsentNotifications() ;
+
+    /**
+     * Осуществляет удаление отправленных нотификаций.
+     */
+    Mono<Void> processDeleteSentNotifications();
 }

@@ -9,6 +9,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -36,7 +37,7 @@ public class CashServiceIntegrationTest extends BaseCashIntegrationTest {
 
     @Test
     void changeCashIsUnauthorizedTest() {
-        trxStepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.PUT))
+        StepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.PUT))
                 .verifyError(AuthorizationDeniedException.class);
     }
 
@@ -53,7 +54,7 @@ public class CashServiceIntegrationTest extends BaseCashIntegrationTest {
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        trxStepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();

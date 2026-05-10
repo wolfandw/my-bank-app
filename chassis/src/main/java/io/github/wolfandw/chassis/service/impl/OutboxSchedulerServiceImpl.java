@@ -1,11 +1,8 @@
 package io.github.wolfandw.chassis.service.impl;
 
-import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.OutboxSchedulerService;
 import org.springframework.scheduling.annotation.Scheduled;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Реализация {@link OutboxSchedulerService}.
@@ -24,13 +21,13 @@ public class OutboxSchedulerServiceImpl implements OutboxSchedulerService {
 
     @Scheduled(fixedDelayString = "PT3s")
     @Override
-    public Flux<Outbox> scheduleSendUnsentOutbox() {
-        return outboxProcessorService.processSendingUnsentOutbox();
+    public void scheduleSendUnsentOutbox() {
+        outboxProcessorService.processSendingUnsentOutbox().subscribe();
     }
 
     @Scheduled(fixedDelayString = "PT10s")
     @Override
-    public Mono<Void> scheduleDeleteSentOutbox() {
-        return outboxProcessorService.processDeletingSentOutbox();
+    public void scheduleDeleteSentOutbox() {
+        outboxProcessorService.processDeletingSentOutbox().subscribe();
     }
 }

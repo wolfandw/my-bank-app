@@ -41,9 +41,6 @@
         "name": "ADMIN"
       },
       {
-        "name": "NOTIFICATIONS_SERVICE_CLIENT"
-      },
-      {
         "name": "TRANSFER_SERVICE_CLIENT"
       },
       {
@@ -95,21 +92,12 @@
       ]
     },
     {
-      "username": "service-account-accounts",
-      "enabled": true,
-      "serviceAccountClientId": "accounts",
-      "realmRoles": [
-        "NOTIFICATIONS_SERVICE_CLIENT"
-      ]
-    },
-    {
       "username": "service-account-cash",
       "enabled": true,
       "serviceAccountClientId": "cash",
       "realmRoles": [
         "CASH_WRITE",
-        "ACCOUNTS_SERVICE_CLIENT",
-        "NOTIFICATIONS_SERVICE_CLIENT"
+        "ACCOUNTS_SERVICE_CLIENT"
       ]
     },
     {
@@ -118,8 +106,7 @@
       "serviceAccountClientId": "transfer",
       "realmRoles": [
         "ACCOUNTS_SERVICE_CLIENT",
-        "TRANSFER_WRITE",
-        "NOTIFICATIONS_SERVICE_CLIENT"
+        "TRANSFER_WRITE"
       ]
     }
   ],
@@ -134,23 +121,15 @@
       ]
     },
     {
-      "client": "accounts",
-      "roles": [
-        "NOTIFICATIONS_SERVICE_CLIENT"
-      ]
-    },
-    {
       "client": "cash",
       "roles": [
-        "ACCOUNTS_SERVICE_CLIENT",
-        "NOTIFICATIONS_SERVICE_CLIENT"
+        "ACCOUNTS_SERVICE_CLIENT"
       ]
     },
     {
       "client": "transfer",
       "roles": [
-        "ACCOUNTS_SERVICE_CLIENT",
-        "NOTIFICATIONS_SERVICE_CLIENT"
+        "ACCOUNTS_SERVICE_CLIENT"
       ]
     }
   ],
@@ -210,14 +189,6 @@
       "clientId": "cash",
       "enabled": true,
       "secret": "Isq0cW1jwx9GIQypRuCX6CEozSPG3xT8",
-      "serviceAccountsEnabled": true,
-      "authorizationServicesEnabled": true,
-      "protocol": "openid-connect"
-    },
-    {
-      "clientId": "notifications",
-      "enabled": true,
-      "secret": "dYULgKXgzByDWxcH8SQ5PIQ9CGWLgMZ0",
       "serviceAccountsEnabled": true,
       "authorizationServicesEnabled": true,
       "protocol": "openid-connect"

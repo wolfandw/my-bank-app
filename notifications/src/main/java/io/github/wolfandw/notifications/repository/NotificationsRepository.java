@@ -26,4 +26,13 @@ public interface NotificationsRepository extends R2dbcRepository<Notification, U
      * @return ничего
      */
     Mono<Void> deleteAllBySent(boolean sent);
+
+    /**
+     * Возвращает сообщение по указанному outboxId и признаку отправления.
+     *
+     * @param outboxId идентификатор исходящего сообщения
+     * @param sent признак отправленного сообщения
+     * @return список сообщений с указанным признаком
+     */
+    Mono<Notification> findByOutboxIdAndSent(UUID outboxId, boolean sent);
 }

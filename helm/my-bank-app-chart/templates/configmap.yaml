@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: my-bank-app-config
-  namespace: dev
+  namespace: {{ .Release.Namespace | default "dev" }}
 data:
   FRONT_UI_PORT: ""
 
@@ -42,3 +42,13 @@ data:
   KEYCLOAK_REALM: "my-bank-app-realm"
   KEYCLOAK_JWK_SET_URI: "http://keycloak/realms/my-bank-app-realm/protocol/openid-connect/certs"
   KEYCLOAK_ISSUER_URI: "http://keycloak/realms/my-bank-app-realm"
+
+  KAFKA_URI: "kafka:9092"
+  KAFKA_PARTITIONS: "3"
+  KAFKA_REPLICAS: "1"
+  KAFKA_CLUSTERS_NAME: "my-bank-app-cluster"
+
+  ACCOUNTS_KAFKA_TOPIC: "accounts-to-notifications"
+  CASH_KAFKA_TOPIC: "cash-to-notifications"
+  TRANSFER_KAFKA_TOPIC: "transfer-to-notifications"
+  NOTIFICATIONS_KAFKA_CONSUMER_GROUP-ID: "my-bank-app-consumer-group"
