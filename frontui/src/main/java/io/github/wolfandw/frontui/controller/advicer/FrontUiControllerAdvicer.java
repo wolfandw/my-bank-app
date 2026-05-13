@@ -2,9 +2,9 @@ package io.github.wolfandw.frontui.controller.advicer;
 
 import io.github.wolfandw.frontui.exception.FrontUiException;
 import io.github.wolfandw.frontui.exception.FrontUiRedirectException;
-import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -56,7 +56,7 @@ public class FrontUiControllerAdvicer {
         return Mono.just(
                 Rendering.view(TEMPLATE_ERROR)
                         .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpStatus.INTERNAL_SERVER_ERROR)
                         .build()
         );
     }
@@ -72,7 +72,7 @@ public class FrontUiControllerAdvicer {
         return Mono.just(
                 Rendering.view(TEMPLATE_ERROR)
                         .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_BAD_REQUEST)
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpStatus.BAD_REQUEST)
                         .build()
         );
     }
@@ -88,7 +88,7 @@ public class FrontUiControllerAdvicer {
         return Mono.just(
                 Rendering.view(TEMPLATE_ERROR)
                         .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_BAD_REQUEST)
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpStatus.BAD_REQUEST)
                         .build()
         );
     }
@@ -104,7 +104,7 @@ public class FrontUiControllerAdvicer {
         return Mono.just(
                 Rendering.view(TEMPLATE_ERROR)
                         .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_FORBIDDEN)
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpStatus.FORBIDDEN)
                         .build()
         );
     }
@@ -120,7 +120,7 @@ public class FrontUiControllerAdvicer {
         return Mono.just(
                 Rendering.view(TEMPLATE_ERROR)
                         .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_NOT_FOUND)
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpStatus.NOT_FOUND)
                         .build()
         );
     }
@@ -147,7 +147,7 @@ public class FrontUiControllerAdvicer {
         return Mono.just(
                 Rendering.view(TEMPLATE_ERROR)
                         .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpStatus.INTERNAL_SERVER_ERROR)
                         .build()
         );
     }
@@ -163,7 +163,7 @@ public class FrontUiControllerAdvicer {
         return Mono.just(
                 Rendering.view(TEMPLATE_ERROR)
                         .modelAttribute(ATTRIBUTE_ERROR, e.getMessage())
-                        .modelAttribute(ATTRIBUTE_STATUS, HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                        .modelAttribute(ATTRIBUTE_STATUS, HttpStatus.INTERNAL_SERVER_ERROR)
                         .build()
         );
     }

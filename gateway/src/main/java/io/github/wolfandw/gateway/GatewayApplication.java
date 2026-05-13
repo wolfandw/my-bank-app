@@ -9,6 +9,7 @@ import org.springframework.boot.data.r2dbc.autoconfigure.DataR2dbcRepositoriesAu
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration;
 import org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration;
+import reactor.core.publisher.Hooks;
 
 /**
  * Приложение Gateway.
@@ -29,6 +30,7 @@ public class GatewayApplication {
      * @param args аргументы
      */
 	public static void main(String[] args) {
+		Hooks.enableAutomaticContextPropagation();
 		SpringApplication.run(GatewayApplication.class, args);
 	}
 }

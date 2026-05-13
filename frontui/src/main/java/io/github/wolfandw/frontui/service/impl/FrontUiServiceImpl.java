@@ -6,6 +6,8 @@ import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.frontui.exception.FrontUiException;
 import io.github.wolfandw.frontui.exception.FrontUiRedirectException;
 import io.github.wolfandw.frontui.service.FrontUiService;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +44,11 @@ public class FrontUiServiceImpl implements FrontUiService {
     private static final String CASH_API_UNAVAILABLE = "Сервис наличных недоступен: %s";
     private static final String TRANSFER_API_UNAVAILABLE = "Сервис переводов недоступен: %s";
 
+    private static final String TRACEPARENT = "traceparent";
+    private static final String TRACEPARENT_FORMAT = "00-%s-%s-01";
+
     private final WebClient webClient;
+    private final Tracer tracer;
 
     @Value("${gateway.host}")
     private String gatewayHost;
@@ -54,9 +60,11 @@ public class FrontUiServiceImpl implements FrontUiService {
      * Создает сервис.
      *
      * @param webClient веб-клиент
+     * @param tracer трассировщик
      */
-    public FrontUiServiceImpl(WebClient webClient) {
+    public FrontUiServiceImpl(WebClient webClient, Tracer tracer) {
         this.webClient = webClient;
+        this.tracer = tracer;
     }
 
     @Override
@@ -65,6 +73,7 @@ public class FrontUiServiceImpl implements FrontUiService {
         LOG.debug("Пользователь -> Front UI. Отправка запроса на получение данных аккаунта");
         return webClient.get()
                 .uri(uriBuilder -> getUriBuilder(uriBuilder, ACCOUNT_PATH).build())
+                .header(TRACEPARENT, getTraceParent())
                 .retrieve()
                 .bodyToMono(AccountDto.class)
                 .onErrorResume(e -> Mono.error(new FrontUiException(ACCOUNTS_API_UNAVAILABLE, e)));
@@ -73,9 +82,10 @@ public class FrontUiServiceImpl implements FrontUiService {
     @Override
     @PreAuthorize("isAuthenticated()")
     public Mono<OperationResultDto> changeUserData(String name, LocalDate birthdate) {
-        LOG.debug("Front UI -> Gateway. Отправка запроса на изменение данных пользователя");
+        LOG.debug("Front webClient -> Gateway. Отправка запроса на изменение данных пользователя");
         return webClient.post()
                 .uri(uriBuilder -> builChangeDatadUri(getUriBuilder(uriBuilder, ACCOUNT_PATH), name, birthdate))
+                .header(TRACEPARENT, getTraceParent())
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
                 .onErrorResume(e -> Mono.error(new FrontUiRedirectException(ACCOUNTS_API_UNAVAILABLE, e)));
@@ -87,6 +97,7 @@ public class FrontUiServiceImpl implements FrontUiService {
         LOG.debug("Front UI -> Gateway. Отправка запроса на изменение наличных");
         return webClient.post()
                 .uri(uriBuilder -> buildChangeCashUri(getUriBuilder(uriBuilder, CASH_PATH), value, action))
+                .header(TRACEPARENT, getTraceParent())
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
                 .onErrorResume(e -> Mono.error(new FrontUiRedirectException(CASH_API_UNAVAILABLE, e)));
@@ -98,6 +109,7 @@ public class FrontUiServiceImpl implements FrontUiService {
         LOG.debug("Front UI -> Gateway. Отправка запроса на перевод наличных");
         return webClient.post()
                 .uri(uriBuilder -> buildTransferCashUri(getUriBuilder(uriBuilder, TRANSFER_PATH), value, recipient))
+                .header(TRACEPARENT, getTraceParent())
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
                 .onErrorResume(e -> Mono.error(new FrontUiRedirectException(TRANSFER_API_UNAVAILABLE, e)));
@@ -130,5 +142,12 @@ public class FrontUiServiceImpl implements FrontUiService {
                 .queryParam(NAME_PARAMETER, name)
                 .queryParam(BIRTHDATE_PARAMETER, birthdate)
                 .build();
+    }
+
+    private String getTraceParent() {
+        Span currentSpan = tracer.currentSpan();
+        return String.format(TRACEPARENT_FORMAT,
+                currentSpan != null ? currentSpan.context().traceId() : "",
+                currentSpan != null ? currentSpan.context().spanId() : "");
     }
 }

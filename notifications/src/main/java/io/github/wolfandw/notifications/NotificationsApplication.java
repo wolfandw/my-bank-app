@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import reactor.core.publisher.Hooks;
 
 /**
  * Проложение Notifications.
@@ -27,6 +28,7 @@ public class NotificationsApplication {
      * @param args аргументы
      */
     public static void main(String[] args) {
+        Hooks.enableAutomaticContextPropagation();
         SpringApplication.run(NotificationsApplication.class, args);
     }
 }
