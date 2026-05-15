@@ -35,4 +35,12 @@ public interface NotificationsRepository extends R2dbcRepository<Notification, U
      * @return список сообщений с указанным признаком
      */
     Mono<Notification> findByOutboxIdAndSent(UUID outboxId, boolean sent);
+
+    /**
+     * Проверяет есть ли сообщения по указанному признаку отправления.
+     *
+     * @param sent признак отправленного сообщения
+     * @return {@code true} если есть
+     */
+    Mono<Boolean> existsBySent(boolean sent);
 }

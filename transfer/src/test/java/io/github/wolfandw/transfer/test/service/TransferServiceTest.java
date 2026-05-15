@@ -4,9 +4,9 @@ import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.transfer.service.impl.TransferServiceImpl;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
@@ -30,11 +31,22 @@ public class TransferServiceTest {
     @Mock
     private OutboxRepository outboxRepository;
 
+    @Mock
+    private Tracer tracer;
+
     @InjectMocks
     private TransferServiceImpl transferService;
 
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    @Mock
     private WebClient webClient;
+    @Mock
+    private WebClient.RequestBodyUriSpec requestBodyUriSpec;
+    @Mock
+    private WebClient.RequestHeadersSpec requestHeadersSpec;
+    @Mock
+    private WebClient.ResponseSpec responseSpec;
+    @Mock
+    private WebClient.RequestBodySpec requestBodySpec;
 
     @Test
     void transferCashIsUnauthorizedTest() {
@@ -47,10 +59,13 @@ public class TransferServiceTest {
                 .thenReturn(Mono.just(outbox));
 
         OperationResultDto operationResultDto = new OperationResultDto(new UUID(0,0), "user", false, "error message");
-        when(webClient.post()
-                .uri(any(Function.class))
-                .retrieve()
-                .bodyToMono(OperationResultDto.class))
+
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
         StepVerifier.create(transferService.transferCash("user", BigDecimal.TEN, "recipient")).
@@ -71,10 +86,13 @@ public class TransferServiceTest {
                 .thenReturn(Mono.just(outbox));
 
         OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", true, "test message");
-        when(webClient.post()
-                .uri(any(Function.class))
-                .retrieve()
-                .bodyToMono(OperationResultDto.class))
+
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
         StepVerifier.create(transferService.transferCash("user", BigDecimal.TEN, "recipient")).

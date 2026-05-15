@@ -32,6 +32,7 @@ public class KafkaConsumerConfiguration {
         ConcurrentKafkaListenerContainerFactory<UUID, Outbox> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
+        factory.getContainerProperties().setObservationEnabled(true);
         return factory;
     }
 

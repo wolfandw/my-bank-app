@@ -4,6 +4,7 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.impl.OutboxProcessorServiceImpl;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,13 +35,18 @@ public class OutboxProcessorServiceTest {
     private KafkaSender<UUID, Outbox> kafkaSender;
 
     @Mock
+    private Tracer tracer;
+
+    @Mock
     private SenderResult<UUID> senderResult;
 
     private OutboxProcessorService outboxProcessorService;
 
     @BeforeEach
     void setUp() {
-        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender, "${spring.kafka.topics.topic}", outboxRepository);
+        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender,
+                "${spring.kafka.topics.topic}",
+                outboxRepository);
     }
 
     @Test

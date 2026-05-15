@@ -1,13 +1,13 @@
 package io.github.wolfandw.chassis.configuration;
 
 import io.github.wolfandw.chassis.model.Outbox;
+import io.micrometer.observation.ObservationRegistry;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.UUIDSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
@@ -29,16 +29,18 @@ public class KafkaProducerAutoConfiguration {
     private String bootstrapServers;
 
     @Bean
-    public SenderOptions<UUID, Outbox> senderOptions(KafkaProperties kafkaProperties) {
+    public SenderOptions<UUID, Outbox> senderOptions(KafkaProperties kafkaProperties,
+                                                     ObservationRegistry observationRegistry) {
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, UUIDSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        return SenderOptions.create(props);
+        SenderOptions<UUID, Outbox> senderOptions = SenderOptions.create(props);
+        senderOptions = senderOptions.withObservation(observationRegistry);
+        return senderOptions;
     }
 
     @Bean
-    @Lazy
     public KafkaSender<UUID, Outbox> kafkaSender(SenderOptions<UUID, Outbox> senderOptions) {
         return KafkaSender.create(senderOptions);
     }

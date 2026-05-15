@@ -3,3 +3,4 @@ io.github.wolfandw.chassis.configuration.SecurityWebFilterConfiguration
 io.github.wolfandw.chassis.configuration.OutboxProcessorAutoConfiguration
 io.github.wolfandw.chassis.configuration.KafkaProducerAutoConfiguration
 io.github.wolfandw.chassis.configuration.LoggingAutoConfiguration
+io.github.wolfandw.chassis.configuration.TracingAutoConfiguration

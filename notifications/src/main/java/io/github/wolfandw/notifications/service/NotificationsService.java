@@ -17,4 +17,14 @@ public interface NotificationsService {
      * Осуществляет удаление отправленных нотификаций.
      */
     Mono<Void> processDeleteSentNotifications();
+
+    /**
+     * Проверяет наличие не отправленных нотификаций.
+     */
+    Mono<Boolean> existsUnsentNotifications();
+
+    /**
+     * Проверяет наличие отправленных нотификаций.
+     */
+    Mono<Boolean> existsSentNotifications();
 }

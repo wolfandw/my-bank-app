@@ -39,17 +39,29 @@ public class NotificationsServiceImpl implements NotificationsService {
                    containerFactory = "kafkaListenerContainerFactory")
     public void listen(ConsumerRecord<UUID, Outbox> record) {
         LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию, топик = " + record.topic());
-        requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage()).subscribe();
+        requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage())
+                .contextCapture().block();
     }
 
     @Override
     public Flux<Notification> processSendUnsentNotifications() {
-        return notificationsRepository.findAllBySent(false).flatMap(this::sendNotification);
+        return notificationsRepository.findAllBySent(false).flatMap(this::sendNotification).contextCapture();
     }
 
     @Override
     public Mono<Void> processDeleteSentNotifications() {
-        return notificationsRepository.deleteAllBySent(true);
+        return notificationsRepository.deleteAllBySent(true).contextCapture();
+    }
+
+
+    @Override
+    public Mono<Boolean> existsUnsentNotifications() {
+        return notificationsRepository.existsBySent(false);
+    }
+
+    @Override
+    public Mono<Boolean> existsSentNotifications() {
+        return notificationsRepository.existsBySent(true);
     }
 
     private Mono<Notification> requestNotification(UUID outboxId, UUID userId, String message) {

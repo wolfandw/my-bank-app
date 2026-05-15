@@ -17,4 +17,14 @@ public interface OutboxProcessorService {
      * Осуществляет удаление отправленных сообщений.
      */
     Mono<Void> processDeletingSentOutbox();
+
+    /**
+     * Проверяет наличие не отправленных сообщений.
+     */
+    Mono<Boolean> existsUnsentOutbox();
+
+    /**
+     * Проверяет наличие отправленных сообщений.
+     */
+    Mono<Boolean> existsSentOutbox();
 }

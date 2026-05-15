@@ -41,21 +41,35 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
         this.outboxRepository = outboxRepository;
     }
 
-    @Override
-    public Flux<Outbox> processSendingUnsentOutbox() {
-        return outboxRepository.findAllBySent(false).flatMap(this::sendOutbox);
-    }
 
     @Override
     public Mono<Void> processDeletingSentOutbox() {
-        return outboxRepository.deleteAllBySent(true);
+        return outboxRepository.deleteAllBySent(true).contextCapture();
+    }
+
+    @Override
+    public Flux<Outbox> processSendingUnsentOutbox() {
+        return outboxRepository
+                .findAllBySent(false)
+                .flatMap(this::sendOutbox)
+                .contextCapture();
+    }
+
+    @Override
+    public Mono<Boolean> existsUnsentOutbox() {
+        return outboxRepository.existsBySent(false);
+    }
+
+    @Override
+    public Mono<Boolean> existsSentOutbox() {
+        return outboxRepository.existsBySent(true);
     }
 
     private Mono<Outbox> sendOutbox(Outbox outbox) {
         LOG.debug("Outbox -> Notifications processor. Отправка запроса на нотификацию " + outbox.getMessage());
         SenderRecord<UUID, Outbox, UUID> record =
                 SenderRecord.create(new ProducerRecord<>(topic, outbox.getId(), outbox), outbox.getId());
-        return kafkaSender.send(Flux.just(record))
+        return kafkaSender.send(Mono.just(record))
                 .next()
                 .flatMap(this::markSent)
                 .onErrorResume(e -> {

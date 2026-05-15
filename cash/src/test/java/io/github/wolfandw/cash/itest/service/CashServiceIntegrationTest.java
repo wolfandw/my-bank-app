@@ -49,6 +49,7 @@ public class CashServiceIntegrationTest extends BaseCashIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))
