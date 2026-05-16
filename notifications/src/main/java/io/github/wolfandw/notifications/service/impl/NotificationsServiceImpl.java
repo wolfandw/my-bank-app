@@ -4,6 +4,7 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.NotificationsService;
+import io.micrometer.core.instrument.Counter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +23,22 @@ public class NotificationsServiceImpl implements NotificationsService {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationsServiceImpl.class);
 
     private final NotificationsRepository notificationsRepository;
+    private final Counter sendUnsentNotificationSuccessCounter;
+    private final Counter sendUnsentNotificationFailureCounter;
 
     /**
      * Создает сервис.
      *
      * @param notificationsRepository репозиторий нотификаций
+     * @param sendUnsentNotificationSuccessCounter счетчик отправленных нотификаций
+     * @param sendUnsentNotificationFailureCounter счетчик не отправленных нотификаций
      */
-    public NotificationsServiceImpl(NotificationsRepository notificationsRepository) {
+    public NotificationsServiceImpl(NotificationsRepository notificationsRepository,
+                                    Counter sendUnsentNotificationSuccessCounter,
+                                    Counter sendUnsentNotificationFailureCounter) {
         this.notificationsRepository = notificationsRepository;
+        this.sendUnsentNotificationSuccessCounter = sendUnsentNotificationSuccessCounter;
+        this.sendUnsentNotificationFailureCounter = sendUnsentNotificationFailureCounter;
     }
 
     @KafkaListener(topics = {"${accounts.kafka.topic}",
@@ -77,9 +86,15 @@ public class NotificationsServiceImpl implements NotificationsService {
         LOG.debug("Notifications. Отправка нотификации " + notification.getMessage());
         notification.setSent(true);
         return notificationsRepository.save(notification).map(sentNotification -> {
-            // собственно отправка уведомления
+            // собственно отправка уведомлени
+            sendUnsentNotificationSuccessCounter.increment();
             LOG.info("Notifications. Уведомление отправлено: '{}'", sentNotification.getMessage());
             return sentNotification;
+        })
+        .onErrorResume(e -> {
+            sendUnsentNotificationFailureCounter.increment();
+            LOG.error("Notifications. Уведомление НЕ отправлено: '{}'", notification.getMessage(), e);
+            return Mono.empty();
         });
     }
 }

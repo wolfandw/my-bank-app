@@ -11,6 +11,7 @@ import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
+import io.micrometer.core.instrument.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,6 +37,10 @@ public class AccountsServiceImpl implements AccountsService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final OutboxRepository outboxRepository;
+    private final Counter changeCashGetSuccessCounter;
+    private final Counter transferCashSuccessCounter;
+    private final Counter changeCashGetFailureCounter;
+    private final Counter transferCashFailureCounter;
 
     /**
      * Создает сервис счетов.
@@ -43,13 +48,25 @@ public class AccountsServiceImpl implements AccountsService {
      * @param accountRepository репозиторий счетов
      * @param userRepository    репозиторий пользователей
      * @param outboxRepository  репозиторий сообщений
+     * @param changeCashGetSuccessCounter  счетчик удачных попыток снятия денег
+     * @param transferCashSuccessCounter  счетчик удачных попыток перевода денег
+     * @param changeCashGetFailureCounter  счетчик неудачных попыток снятия денег
+     * @param transferCashFailureCounter  счетчик неудачных попыток перевода денег
      */
     public AccountsServiceImpl(AccountRepository accountRepository,
                                UserRepository userRepository,
-                               OutboxRepository outboxRepository) {
+                               OutboxRepository outboxRepository,
+                               Counter changeCashGetSuccessCounter,
+                               Counter transferCashSuccessCounter,
+                               Counter changeCashGetFailureCounter,
+                               Counter transferCashFailureCounter) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.outboxRepository = outboxRepository;
+        this.changeCashGetSuccessCounter = changeCashGetSuccessCounter;
+        this.transferCashSuccessCounter = transferCashSuccessCounter;
+        this.changeCashGetFailureCounter = changeCashGetFailureCounter;
+        this.transferCashFailureCounter = transferCashFailureCounter;
     }
 
     @Override
@@ -78,6 +95,7 @@ public class AccountsServiceImpl implements AccountsService {
                     BigDecimal currentBalance = account.getBalance();
                     if (action == CashAction.GET) {
                         if (currentBalance.compareTo(value) < 0) {
+                            changeCashGetFailureCounter.increment();
                             return Mono.just(new OperationResultDto(user.getId(),
                                     login,
                                     false,
@@ -85,10 +103,13 @@ public class AccountsServiceImpl implements AccountsService {
                         } else {
                             account.setBalance(currentBalance.subtract(value));
                             return accountRepository.save(account).
-                                    map(changedAccount -> new OperationResultDto(user.getId(),
+                                    map(changedAccount -> {
+                                        changeCashGetSuccessCounter.increment();
+                                        return new OperationResultDto(user.getId(),
                                             login,
                                             true,
-                                            "Accounts. Снято %s руб".formatted(value.toPlainString())));
+                                            "Accounts. Снято %s руб".formatted(value.toPlainString()));
+                                    });
                         }
                     } else {
                         account.setBalance(currentBalance.add(value));
@@ -111,6 +132,7 @@ public class AccountsServiceImpl implements AccountsService {
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
                     if (currentBalance.compareTo(value) < 0) {
+                        transferCashFailureCounter.increment();
                         return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете"));
                     }
                     account.setBalance(currentBalance.subtract(value));
@@ -120,10 +142,13 @@ public class AccountsServiceImpl implements AccountsService {
                                 recipientAccount.setBalance(recipientBalance.add(value));
                                 return accountRepository.save(recipientAccount).
                                         flatMap(changedRecipientAccount -> accountRepository.save(account)).
-                                        map(createdOutbox -> new OperationResultDto(user.getId(),
+                                        map(createdOutbox -> {
+                                            transferCashSuccessCounter.increment();
+                                            return new OperationResultDto(user.getId(),
                                                 login,
                                                 true,
-                                                "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient)));
+                                                "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient));
+                                        });
                             }));
                 }
         )).switchIfEmpty(Mono.error(new NoSuchElementException("Accounts. Не удалось выполнить перевод со счета")));

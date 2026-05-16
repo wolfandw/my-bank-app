@@ -12,6 +12,7 @@ import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
+import io.micrometer.core.instrument.Counter;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +56,18 @@ public class AccountsServiceTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private WebClient webClient;
+
+    @Mock
+    private Counter changeCashGetSuccessCounter;
+
+    @Mock
+    private Counter changeCashGetFailureCounter;
+
+    @Mock
+    private Counter transferCashSuccessCounter;
+
+    @Mock
+    private Counter transferCashFailureCounter;
 
     @Test
     void getAccountTest() {

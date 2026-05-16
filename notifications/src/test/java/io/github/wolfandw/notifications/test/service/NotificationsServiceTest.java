@@ -4,6 +4,7 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.impl.NotificationsServiceImpl;
+import io.micrometer.core.instrument.Counter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.MockConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -39,6 +40,12 @@ public class NotificationsServiceTest {
 
     @InjectMocks
     private NotificationsServiceImpl notificationsService;
+
+    @Mock
+    private Counter sendUnsentNotificationSuccessCounter;
+
+    @Mock
+    private Counter sendUnsentNotificationFailureCounter;
 
     @ParameterizedTest
     @ValueSource(strings = {"${accounts.kafka.topic}", "@{cash.kafka.topic}", "@{transfer.kafka.topic}"})

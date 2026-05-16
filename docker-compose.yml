@@ -73,6 +73,19 @@ services:
       retries: 3
       start_period: 10s
 
+  prometheus:
+    image: prom/prometheus:v3.11.3
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+
   accountsdata:
     image: postgres:17-alpine
     container_name: accountsdata
@@ -131,4 +144,6 @@ services:
 
 volumes:
   kafka_data:
+    driver: local
+  prometheus_data:
     driver: local

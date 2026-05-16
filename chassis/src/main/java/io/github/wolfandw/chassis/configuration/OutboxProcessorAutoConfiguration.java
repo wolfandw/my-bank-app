@@ -1,14 +1,13 @@
 package io.github.wolfandw.chassis.configuration;
 
-import brave.Tracing;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.OutboxSchedulerService;
 import io.github.wolfandw.chassis.service.impl.OutboxProcessorServiceImpl;
 import io.github.wolfandw.chassis.service.impl.OutboxSchedulerServiceImpl;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.observation.ObservationRegistry;
-import io.micrometer.tracing.Tracer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -28,9 +27,13 @@ public class OutboxProcessorAutoConfiguration {
     public OutboxProcessorService outboxProcessorService(@Lazy KafkaSender<UUID, Outbox> kafkaSender,
                                                          @Value("${spring.kafka.topics.topic}") String topic,
                                                          OutboxRepository outboxRepository,
-                                                         Tracing tracing,
-                                                         Tracer tracer) {
-        return new OutboxProcessorServiceImpl(kafkaSender, topic, outboxRepository);
+                                                         Counter sendUnsentOutboxSuccessCounter,
+                                                         Counter sendUnsentOutboxFailureCounter) {
+        return new OutboxProcessorServiceImpl(kafkaSender,
+                topic,
+                outboxRepository,
+                sendUnsentOutboxSuccessCounter,
+                sendUnsentOutboxFailureCounter);
     }
 
     @Bean

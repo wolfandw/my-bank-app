@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'my-bank-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [ "localhost:${FRONT_UI_PORT:8089}",
+                   "${GATEWAY_HOST:localhost}:${GATEWAY_PORT:8081}",
+                   "${ACCOUNT_HOST:localhost}:${ACCOUNT_PORT:8083}",
+                   "${CASH_HOST:localhost}:${CASH_PORT:8084}",
+                   "${TRANSFER_HOST:localhost}:${TRANSFER_PORT:8085}",
+                   "${NOTIFICATIONS_HOST:localhost}:${NOTIFICATIONS_HOST:8086}"]

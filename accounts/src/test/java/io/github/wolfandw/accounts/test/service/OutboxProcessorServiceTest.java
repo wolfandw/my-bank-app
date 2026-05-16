@@ -4,6 +4,7 @@ import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.impl.OutboxProcessorServiceImpl;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,13 +41,19 @@ public class OutboxProcessorServiceTest {
     @Mock
     private SenderResult<UUID> senderResult;
 
+    @Mock
+    private Counter sendUnsentOutboxSuccessCounter;
+
+    @Mock
+    private Counter sendUnsentOutboxFailureCounter;
+
     private OutboxProcessorService outboxProcessorService;
 
     @BeforeEach
     void setUp() {
         outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender,
                 "${spring.kafka.topics.topic}",
-                outboxRepository);
+                outboxRepository, sendUnsentOutboxSuccessCounter, sendUnsentOutboxFailureCounter);
     }
 
     @Test
