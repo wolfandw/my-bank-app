@@ -6,13 +6,39 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'my-bank-app'
+  - job_name: 'front-ui'
     metrics_path: '/actuator/prometheus'
     scrape_interval: 5s
     static_configs:
-      - targets: [ "localhost:${FRONT_UI_PORT:8089}",
-                   "${GATEWAY_HOST:localhost}:${GATEWAY_PORT:8081}",
-                   "${ACCOUNT_HOST:localhost}:${ACCOUNT_PORT:8083}",
-                   "${CASH_HOST:localhost}:${CASH_PORT:8084}",
-                   "${TRANSFER_HOST:localhost}:${TRANSFER_PORT:8085}",
-                   "${NOTIFICATIONS_HOST:localhost}:${NOTIFICATIONS_HOST:8086}"]
+      - targets: ['host.docker.internal:8089']
+
+  - job_name: 'gateway'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+
+  - job_name: 'accounts'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:8083']
+
+
+  - job_name: 'cash'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:8084']
+
+  - job_name: 'transfer'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:8085']
+
+  - job_name: 'notifications'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['host.docker.internal:8086']

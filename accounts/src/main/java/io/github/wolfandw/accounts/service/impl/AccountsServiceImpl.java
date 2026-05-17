@@ -95,11 +95,11 @@ public class AccountsServiceImpl implements AccountsService {
                     BigDecimal currentBalance = account.getBalance();
                     if (action == CashAction.GET) {
                         if (currentBalance.compareTo(value) < 0) {
-                            changeCashGetFailureCounter.increment();
                             return Mono.just(new OperationResultDto(user.getId(),
                                     login,
                                     false,
-                                    "Accounts. Недостаточно средств на счете"));
+                                    "Accounts. Недостаточно средств на счете"))
+                                    .doOnNext(dto -> changeCashGetFailureCounter.increment());
                         } else {
                             account.setBalance(currentBalance.subtract(value));
                             return accountRepository.save(account).
@@ -132,8 +132,8 @@ public class AccountsServiceImpl implements AccountsService {
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
                     if (currentBalance.compareTo(value) < 0) {
-                        transferCashFailureCounter.increment();
-                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете"));
+                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете"))
+                                .doOnNext(dto -> transferCashFailureCounter.increment());
                     }
                     account.setBalance(currentBalance.subtract(value));
                     return userRepository.findByLogin(recipient).flatMap(userRecipient -> accountRepository.findByUserId(userRecipient.getId()).flatMap(

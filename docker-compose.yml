@@ -40,7 +40,7 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - ALLOW_ANONYMOUS_LOGIN=yes
     volumes:
-      - kafka_data:/bitnami/kafka
+      - /bitnami/kafka
     healthcheck:
       test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server kafka:9092 --list" ]
       interval: 10s
@@ -80,11 +80,30 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
+      - /prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=15d'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Для доступа к хосту
+
+  grafana:
+    image: grafana/grafana:13.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_ALLOW_UI_UPDATES=true
+    depends_on:
+      - prometheus
+    links:
+      - prometheus
+    volumes:
+      - /var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
 
   accountsdata:
     image: postgres:17-alpine
@@ -141,9 +160,3 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${NOTIFICATIONS_DB_USERNAME} -d ${NOTIFICATIONS_DB_NAME}" ]
       interval: 5s
-
-volumes:
-  kafka_data:
-    driver: local
-  prometheus_data:
-    driver: local

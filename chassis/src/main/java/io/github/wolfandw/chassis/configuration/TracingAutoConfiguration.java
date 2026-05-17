@@ -5,6 +5,7 @@ import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
 import io.micrometer.common.KeyValue;
+import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.observation.ObservationFilter;
 import io.micrometer.observation.ObservationPredicate;
 import io.micrometer.observation.ObservationRegistry;
@@ -109,6 +110,25 @@ public class TracingAutoConfiguration {
                 return tableName != null;
             }
             return true;
+        };
+    }
+
+    @Bean
+    public MeterFilter percentileHistogramFilter() {
+        return new MeterFilter() {
+            @Override
+            public io.micrometer.core.instrument.distribution.DistributionStatisticConfig configure(
+                    io.micrometer.core.instrument.Meter.Id id,
+                    io.micrometer.core.instrument.distribution.DistributionStatisticConfig config) {
+
+                if (id.getName().endsWith("server.requests")) {
+                    return io.micrometer.core.instrument.distribution.DistributionStatisticConfig.builder()
+                            .percentilesHistogram(true)
+                            .build()
+                            .merge(config);
+                }
+                return config;
+            }
         };
     }
 }
