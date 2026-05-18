@@ -16,7 +16,7 @@ public class Outbox {
     private UUID id;
 
     @Column("user_id")
-    private UUID userId;
+    private String userId;
 
     @Column("message")
     private String message;
@@ -50,7 +50,7 @@ public class Outbox {
      *
      * @return идентификатор пользователя
      */
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
 
@@ -59,7 +59,7 @@ public class Outbox {
      *
      * @param userId идентификатор пользователя
      */
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

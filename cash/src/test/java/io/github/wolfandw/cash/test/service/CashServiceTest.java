@@ -54,7 +54,7 @@ public class CashServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserId("user");
         outbox.setMessage("test message");
         when(outboxRepository.save(any(Outbox.class)))
                 .thenReturn(Mono.just(outbox));
@@ -81,7 +81,7 @@ public class CashServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserId("user");
         outbox.setMessage("test message");
         when(outboxRepository.save(any(Outbox.class)))
                 .thenReturn(Mono.just(outbox));

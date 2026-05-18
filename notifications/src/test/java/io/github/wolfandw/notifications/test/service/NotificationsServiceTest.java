@@ -1,10 +1,10 @@
 package io.github.wolfandw.notifications.test.service;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.impl.NotificationsServiceImpl;
-import io.micrometer.core.instrument.Counter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.MockConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -42,10 +42,7 @@ public class NotificationsServiceTest {
     private NotificationsServiceImpl notificationsService;
 
     @Mock
-    private Counter sendUnsentNotificationSuccessCounter;
-
-    @Mock
-    private Counter sendUnsentNotificationFailureCounter;
+    private BusinessMetricIncrementor businessMetricIncrementor;
 
     @ParameterizedTest
     @ValueSource(strings = {"${accounts.kafka.topic}", "@{cash.kafka.topic}", "@{transfer.kafka.topic}"})
@@ -53,7 +50,7 @@ public class NotificationsServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserId("user");
         outbox.setMessage("test message, топик: " + topic);
 
         try (MockConsumer<UUID, Outbox> mockConsumer = new MockConsumer<>("earliest")) {
@@ -80,7 +77,7 @@ public class NotificationsServiceTest {
     void processSendingUnsentOutboxTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Notification notification = new Notification();
-        notification.setUserId(outboxId);
+        notification.setUserId("user");
         notification.setOutboxId(outboxId);
         notification.setMessage("test message");
         when(notificationsRepository.findAllBySent(any(Boolean.class)))

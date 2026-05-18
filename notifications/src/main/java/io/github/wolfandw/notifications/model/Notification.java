@@ -19,7 +19,7 @@ public class Notification {
     private UUID outboxId;
 
     @Column("user_id")
-    private UUID userId;
+    private String userId;
 
     @Column("message")
     private String message;
@@ -53,7 +53,7 @@ public class Notification {
      *
      * @return идентификатор пользователя
      */
-    public UUID getUserId() {
+    public String getUserId() {
         return userId;
     }
 
@@ -62,7 +62,7 @@ public class Notification {
      *
      * @param userId идентификатор пользователя
      */
-    public void setUserId(UUID userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

@@ -101,13 +101,13 @@ public class CashServiceImpl implements CashService {
 
     private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
-        outbox.setUserId(userId);
+        outbox.setUserId(login);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }
 
     private String createMessage(String login, String message) {
-        return message + ": '" + login + "'";
+        return message + ", пользователь: " + login;
     }
 
     private String getTraceParent() {

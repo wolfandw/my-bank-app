@@ -60,7 +60,7 @@ public abstract class AbstractTestcontainersTest {
     private List<Notification> getNotifications(boolean sent) {
         return IntStream.range(0, 3).mapToObj(i -> {
             Notification notification = new Notification();
-            notification.setUserId(UUID.randomUUID());
+            notification.setUserId("user");
             notification.setOutboxId(UUID.randomUUID());
             notification.setMessage("test message " + i);
             notification.setSent(sent);
@@ -71,7 +71,7 @@ public abstract class AbstractTestcontainersTest {
     private List<Outbox> getOutboxes(boolean sent) {
         return IntStream.range(0, 3).mapToObj(i -> {
             Outbox outbox = new Outbox();
-            outbox.setUserId(UUID.randomUUID());
+            outbox.setUserId("user");
             outbox.setMessage("test message " + i);
             outbox.setSent(sent);
             return outbox;

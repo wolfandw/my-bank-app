@@ -10,9 +10,9 @@ import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
-import io.micrometer.core.instrument.Counter;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,23 +58,14 @@ public class AccountsServiceTest {
     private WebClient webClient;
 
     @Mock
-    private Counter changeCashGetSuccessCounter;
-
-    @Mock
-    private Counter changeCashGetFailureCounter;
-
-    @Mock
-    private Counter transferCashSuccessCounter;
-
-    @Mock
-    private Counter transferCashFailureCounter;
+    private BusinessMetricIncrementor businessMetricIncrementor;
 
     @Test
     void getAccountTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserId("user");
         outbox.setMessage("test message");
 
         UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
@@ -178,7 +169,7 @@ public class AccountsServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserId("user");
         outbox.setMessage("test message");
         when(outboxRepository.save(any(Outbox.class)))
                 .thenReturn(Mono.just(outbox));

@@ -9,9 +9,9 @@ import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
-import io.micrometer.core.instrument.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,10 +37,7 @@ public class AccountsServiceImpl implements AccountsService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final OutboxRepository outboxRepository;
-    private final Counter changeCashGetSuccessCounter;
-    private final Counter transferCashSuccessCounter;
-    private final Counter changeCashGetFailureCounter;
-    private final Counter transferCashFailureCounter;
+    private final BusinessMetricIncrementor businessMetricIncrementor;
 
     /**
      * Создает сервис счетов.
@@ -48,25 +45,16 @@ public class AccountsServiceImpl implements AccountsService {
      * @param accountRepository репозиторий счетов
      * @param userRepository    репозиторий пользователей
      * @param outboxRepository  репозиторий сообщений
-     * @param changeCashGetSuccessCounter  счетчик удачных попыток снятия денег
-     * @param transferCashSuccessCounter  счетчик удачных попыток перевода денег
-     * @param changeCashGetFailureCounter  счетчик неудачных попыток снятия денег
-     * @param transferCashFailureCounter  счетчик неудачных попыток перевода денег
+     * @param businessMetricIncrementor инкрементор счетчиков
      */
     public AccountsServiceImpl(AccountRepository accountRepository,
                                UserRepository userRepository,
                                OutboxRepository outboxRepository,
-                               Counter changeCashGetSuccessCounter,
-                               Counter transferCashSuccessCounter,
-                               Counter changeCashGetFailureCounter,
-                               Counter transferCashFailureCounter) {
+                               BusinessMetricIncrementor businessMetricIncrementor) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.outboxRepository = outboxRepository;
-        this.changeCashGetSuccessCounter = changeCashGetSuccessCounter;
-        this.transferCashSuccessCounter = transferCashSuccessCounter;
-        this.changeCashGetFailureCounter = changeCashGetFailureCounter;
-        this.transferCashFailureCounter = transferCashFailureCounter;
+        this.businessMetricIncrementor = businessMetricIncrementor;
     }
 
     @Override
@@ -98,13 +86,13 @@ public class AccountsServiceImpl implements AccountsService {
                             return Mono.just(new OperationResultDto(user.getId(),
                                     login,
                                     false,
-                                    "Accounts. Недостаточно средств на счете"))
-                                    .doOnNext(dto -> changeCashGetFailureCounter.increment());
+                                    "Accounts. Недостаточно средств на счете для списания"))
+                                    .doOnNext(dto -> businessMetricIncrementor.incrementChangeCashFailure(login));
                         } else {
                             account.setBalance(currentBalance.subtract(value));
                             return accountRepository.save(account).
                                     map(changedAccount -> {
-                                        changeCashGetSuccessCounter.increment();
+                                        businessMetricIncrementor.incrementChangeCashSuccess(login);
                                         return new OperationResultDto(user.getId(),
                                             login,
                                             true,
@@ -132,8 +120,8 @@ public class AccountsServiceImpl implements AccountsService {
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
                     if (currentBalance.compareTo(value) < 0) {
-                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете"))
-                                .doOnNext(dto -> transferCashFailureCounter.increment());
+                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете для перевода получателю: " + recipient))
+                                .doOnNext(dto -> businessMetricIncrementor.incrementTransferCashFailure(login, recipient));
                     }
                     account.setBalance(currentBalance.subtract(value));
                     return userRepository.findByLogin(recipient).flatMap(userRecipient -> accountRepository.findByUserId(userRecipient.getId()).flatMap(
@@ -143,7 +131,7 @@ public class AccountsServiceImpl implements AccountsService {
                                 return accountRepository.save(recipientAccount).
                                         flatMap(changedRecipientAccount -> accountRepository.save(account)).
                                         map(createdOutbox -> {
-                                            transferCashSuccessCounter.increment();
+                                            businessMetricIncrementor.incrementTransferCashSuccess(login, recipient);
                                             return new OperationResultDto(user.getId(),
                                                 login,
                                                 true,
@@ -194,12 +182,12 @@ public class AccountsServiceImpl implements AccountsService {
 
     private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
-        outbox.setUserId(userId);
+        outbox.setUserId(login);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }
 
     private String createMessage(String login, String message) {
-        return message + ": '" + login + "'";
+        return message + ", пользователь: " + login;
     }
 }

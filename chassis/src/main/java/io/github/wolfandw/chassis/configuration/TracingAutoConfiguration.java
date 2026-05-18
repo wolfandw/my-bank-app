@@ -5,7 +5,6 @@ import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
 import io.micrometer.common.KeyValue;
-import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.observation.ObservationFilter;
 import io.micrometer.observation.ObservationPredicate;
 import io.micrometer.observation.ObservationRegistry;
@@ -39,6 +38,8 @@ public class TracingAutoConfiguration {
     private static final String DB_TABLE = "db.table";
     private static final String POSTGRE_SQL = "PostgreSQL";
     private static final String LIMIT_1 = "LIMIT 1";
+    public static final String HTTP_URL = "http.url";
+    public static final String ACTUATOR_PROMETHEUS = "/actuator/prometheus";
 
     @Bean
     @ConditionalOnProperty(name = "spring.r2dbc.url")
@@ -108,27 +109,18 @@ public class TracingAutoConfiguration {
             if (QUERY.equalsIgnoreCase(name)) {
                 String tableName = finishedSpan.getTags().get(DB_TABLE);
                 return tableName != null;
+            } else if ("security filterchain before".equalsIgnoreCase(name) ||
+                        "authorize exchange".equalsIgnoreCase(name) ||
+                        "secured request".equalsIgnoreCase(name) ||
+                        "security filterchain after".equalsIgnoreCase(name) ||
+                        "unknown".equalsIgnoreCase(name)) {
+                return false;
+            }
+            String httpUrl =  finishedSpan.getTags().get(HTTP_URL);
+            if (httpUrl != null && !httpUrl.isEmpty()) {
+                return !ACTUATOR_PROMETHEUS.equals(httpUrl);
             }
             return true;
-        };
-    }
-
-    @Bean
-    public MeterFilter percentileHistogramFilter() {
-        return new MeterFilter() {
-            @Override
-            public io.micrometer.core.instrument.distribution.DistributionStatisticConfig configure(
-                    io.micrometer.core.instrument.Meter.Id id,
-                    io.micrometer.core.instrument.distribution.DistributionStatisticConfig config) {
-
-                if (id.getName().endsWith("server.requests")) {
-                    return io.micrometer.core.instrument.distribution.DistributionStatisticConfig.builder()
-                            .percentilesHistogram(true)
-                            .build()
-                            .merge(config);
-                }
-                return config;
-            }
         };
     }
 }

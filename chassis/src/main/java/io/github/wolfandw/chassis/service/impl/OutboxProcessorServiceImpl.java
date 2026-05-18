@@ -1,9 +1,9 @@
 package io.github.wolfandw.chassis.service.impl;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
-import io.micrometer.core.instrument.Counter;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +26,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
     private final KafkaSender<UUID, Outbox> kafkaSender;
     private final String topic;
     private final OutboxRepository outboxRepository;
-    private final Counter sendUnsentOutboxSuccessCounter;
-    private final Counter sendUnsentOutboxFailureCounter;
+    private final BusinessMetricIncrementor businessMetricIncrementor;
 
     /**
      * Создает сервис.
@@ -35,19 +34,16 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
      * @param kafkaSender реактивный продюсер Kafka
      * @param topic топик Kafka
      * @param outboxRepository репозиторий сообщений
-     * @param sendUnsentOutboxSuccessCounter счетчик отправленных сообщений
-     * @param sendUnsentOutboxFailureCounter счетчик не отправленных сообщений
+     * @param businessMetricIncrementor инкрементор счетчиков
      */
     public OutboxProcessorServiceImpl(KafkaSender<UUID, Outbox> kafkaSender,
                                       String topic,
                                       OutboxRepository outboxRepository,
-                                      Counter sendUnsentOutboxSuccessCounter,
-                                      Counter sendUnsentOutboxFailureCounter) {
+                                      BusinessMetricIncrementor businessMetricIncrementor) {
         this.kafkaSender = kafkaSender;
         this.topic = topic;
         this.outboxRepository = outboxRepository;
-        this.sendUnsentOutboxSuccessCounter = sendUnsentOutboxSuccessCounter;
-        this.sendUnsentOutboxFailureCounter = sendUnsentOutboxFailureCounter;
+        this.businessMetricIncrementor = businessMetricIncrementor;
     }
 
 
@@ -61,7 +57,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
         return outboxRepository
                 .findAllBySent(false)
                 .flatMap(this::sendOutbox)
-                .doOnNext(outbox -> sendUnsentOutboxSuccessCounter.increment())
+                .doOnNext(outbox -> businessMetricIncrementor.incrementOutboxSuccess(outbox.getUserId()))
                 .contextCapture();
     }
 
@@ -83,7 +79,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
                 .next()
                 .flatMap(this::markSent)
                 .onErrorResume(e -> {
-                    sendUnsentOutboxFailureCounter.increment();
+                    businessMetricIncrementor.incrementOutboxFailure(outbox.getUserId());
                     LOG.error(NOTIFICATIONS_API_UNAVAILABLE.formatted(e.getMessage()), e);
                     return Mono.empty();
                 });

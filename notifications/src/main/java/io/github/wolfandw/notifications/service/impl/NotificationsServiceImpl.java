@@ -1,10 +1,10 @@
 package io.github.wolfandw.notifications.service.impl;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
 import io.github.wolfandw.notifications.service.NotificationsService;
-import io.micrometer.core.instrument.Counter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,22 +23,18 @@ public class NotificationsServiceImpl implements NotificationsService {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationsServiceImpl.class);
 
     private final NotificationsRepository notificationsRepository;
-    private final Counter sendUnsentNotificationSuccessCounter;
-    private final Counter sendUnsentNotificationFailureCounter;
+    private final BusinessMetricIncrementor businessMetricIncrementor;
 
     /**
      * Создает сервис.
      *
      * @param notificationsRepository репозиторий нотификаций
-     * @param sendUnsentNotificationSuccessCounter счетчик отправленных нотификаций
-     * @param sendUnsentNotificationFailureCounter счетчик не отправленных нотификаций
+     * @param businessMetricIncrementor инкрементор счетчиков
      */
     public NotificationsServiceImpl(NotificationsRepository notificationsRepository,
-                                    Counter sendUnsentNotificationSuccessCounter,
-                                    Counter sendUnsentNotificationFailureCounter) {
+                                    BusinessMetricIncrementor businessMetricIncrementor) {
         this.notificationsRepository = notificationsRepository;
-        this.sendUnsentNotificationSuccessCounter = sendUnsentNotificationSuccessCounter;
-        this.sendUnsentNotificationFailureCounter = sendUnsentNotificationFailureCounter;
+        this.businessMetricIncrementor = businessMetricIncrementor;
     }
 
     @KafkaListener(topics = {"${accounts.kafka.topic}",
@@ -73,7 +69,7 @@ public class NotificationsServiceImpl implements NotificationsService {
         return notificationsRepository.existsBySent(true);
     }
 
-    private Mono<Notification> requestNotification(UUID outboxId, UUID userId, String message) {
+    private Mono<Notification> requestNotification(UUID outboxId, String userId, String message) {
         LOG.debug("Notifications. Обрабатывается запрос на отправку уведомления");
         Notification notification = new Notification();
         notification.setUserId(userId);
@@ -87,12 +83,12 @@ public class NotificationsServiceImpl implements NotificationsService {
         notification.setSent(true);
         return notificationsRepository.save(notification).map(sentNotification -> {
             // собственно отправка уведомлени
-            sendUnsentNotificationSuccessCounter.increment();
+            businessMetricIncrementor.incrementNotificationSuccess(sentNotification.getUserId());
             LOG.info("Notifications. Уведомление отправлено: '{}'", sentNotification.getMessage());
             return sentNotification;
         })
         .onErrorResume(e -> {
-            sendUnsentNotificationFailureCounter.increment();
+            businessMetricIncrementor.incrementNotificationFailure(notification.getUserId());
             LOG.error("Notifications. Уведомление НЕ отправлено: '{}'", notification.getMessage(), e);
             return Mono.empty();
         });
