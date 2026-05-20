@@ -12,6 +12,8 @@ import io.micrometer.tracing.exporter.SpanExportingPredicate;
 import io.r2dbc.proxy.observation.ObservationProxyExecutionListener;
 import io.r2dbc.proxy.observation.QueryContext;
 import io.r2dbc.spi.ConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,6 +21,8 @@ import org.springframework.boot.r2dbc.autoconfigure.ProxyConnectionFactoryCustom
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.support.ScheduledTaskObservationContext;
+import zipkin2.reporter.Sender;
+import zipkin2.reporter.okhttp3.OkHttpSender;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +32,7 @@ import java.util.regex.Pattern;
  */
 @AutoConfiguration
 public class TracingAutoConfiguration {
+    private static final Logger LOG = LoggerFactory.getLogger(TracingAutoConfiguration.class);
     private static final Pattern TABLE_NAME_PATTERN = Pattern.compile(
             "\\b(from|join|into|update)\\s+[\"]?([a-zA-Z0-9_]+)[\"]?",
             Pattern.CASE_INSENSITIVE
@@ -38,8 +43,12 @@ public class TracingAutoConfiguration {
     private static final String DB_TABLE = "db.table";
     private static final String POSTGRE_SQL = "PostgreSQL";
     private static final String LIMIT_1 = "LIMIT 1";
-    public static final String HTTP_URL = "http.url";
-    public static final String ACTUATOR_PROMETHEUS = "/actuator/prometheus";
+    private static final String HTTP_URL = "http.url";
+    private static final String HTTP_URI = "http.uri";
+    private static final String ACTUATOR = "/actuator/";
+
+    @Value("${management.zipkin.tracing.endpoint}")
+    private String zipkinTracingEndpoint;
 
     @Bean
     @ConditionalOnProperty(name = "spring.r2dbc.url")
@@ -110,17 +119,23 @@ public class TracingAutoConfiguration {
                 String tableName = finishedSpan.getTags().get(DB_TABLE);
                 return tableName != null;
             } else if ("security filterchain before".equalsIgnoreCase(name) ||
-                        "authorize exchange".equalsIgnoreCase(name) ||
-                        "secured request".equalsIgnoreCase(name) ||
-                        "security filterchain after".equalsIgnoreCase(name) ||
-                        "unknown".equalsIgnoreCase(name)) {
+                       "authorize exchange".equalsIgnoreCase(name) ||
+                       "secured request".equalsIgnoreCase(name) ||
+                       "security filterchain after".equalsIgnoreCase(name) ||
+                       "unknown".equalsIgnoreCase(name)) {
                 return false;
             }
             String httpUrl =  finishedSpan.getTags().get(HTTP_URL);
-            if (httpUrl != null && !httpUrl.isEmpty()) {
-                return !ACTUATOR_PROMETHEUS.equals(httpUrl);
+            if (httpUrl != null && httpUrl.contains(ACTUATOR)) {
+                return false;
             }
-            return true;
+            String httpUri =  finishedSpan.getTags().get(HTTP_URI);
+            return httpUri == null || !httpUri.contains(ACTUATOR);
         };
+    }
+
+    @Bean
+    public Sender zipkinSender() {
+        return OkHttpSender.create(zipkinTracingEndpoint);
     }
 }

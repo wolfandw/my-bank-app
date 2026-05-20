@@ -39,8 +39,6 @@ public class BusinessMetricIncrementor {
         incrementChangeCashFailure(FAILURE, login);
     }
 
-
-
     /**
      * Увеличивает счетчик попыток перевода денег Success.
      *
@@ -61,8 +59,6 @@ public class BusinessMetricIncrementor {
         incrementTransferCash(FAILURE, login, recipient);
     }
 
-
-
     /**
      * Увеличивает счетчик попыток отправки сообщений в сервис нотификаций Success.
      *
@@ -80,8 +76,6 @@ public class BusinessMetricIncrementor {
     public void incrementOutboxFailure(String login) {
         incrementOutbox(FAILURE, login);
     }
-
-
 
     /**
      * Увеличивает счетчик попыток отправки нотификаций получателю Success.

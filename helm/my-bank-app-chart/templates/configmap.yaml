@@ -4,9 +4,6 @@ metadata:
   name: my-bank-app-config
   namespace: {{ .Release.Namespace | default "dev" }}
 data:
-  FRONT_UI_PORT: ""
-
-  GATEWAY_HOST: "gateway-chart"
   GATEWAY_PORT: "8080"
 
   ACCOUNT_HOST: "accounts-chart"
@@ -37,11 +34,8 @@ data:
   NOTIFICATIONS_DB_PORT: "5432"
   NOTIFICATIONS_DB_NAME: "notifications_db"
   
-  KEYCLOAK_HOST: "keycloak"
-  KEYCLOAK_PORT: "8080"
-  KEYCLOAK_REALM: "my-bank-app-realm"
-  KEYCLOAK_JWK_SET_URI: "http://keycloak/realms/my-bank-app-realm/protocol/openid-connect/certs"
-  KEYCLOAK_ISSUER_URI: "http://keycloak/realms/my-bank-app-realm"
+  KEYCLOAK_JWK_SET_URI: "http://keycloak:8080/realms/my-bank-app-realm/protocol/openid-connect/certs"
+  KEYCLOAK_ISSUER_URI: "http://keycloak:8080/realms/my-bank-app-realm"
 
   KAFKA_URI: "kafka:9092"
   KAFKA_PARTITIONS: "3"
@@ -52,3 +46,15 @@ data:
   CASH_KAFKA_TOPIC: "cash-to-notifications"
   TRANSFER_KAFKA_TOPIC: "transfer-to-notifications"
   NOTIFICATIONS_KAFKA_CONSUMER_GROUP-ID: "my-bank-app-consumer-group"
+
+  LOGSTASH_HOST: "host.minikube.internal"
+
+  ZIPKIN_URI: "http://192.168.49.1:9411/api/v2/spans"
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "http://192.168.49.1:9411/api/v2/spans"
+  MANAGEMENT_TRACING_PROPAGATION_TYPE: "W3C,B3"
+  MANAGEMENT_TRACING_ENABLED: "true"
+  MANAGEMENT_ZIPKIN_TRACING_EXPORT_ENABLED: "true"
+  MANAGEMENT_ZIPKIN_TRACING_CONNECT-TIMEOUT: "5s"
+  MANAGEMENT_ZIPKIN_TRACING_READ-TIMEOUT: "5s"
+  JAVA_TOOL_OPTIONS: "-Djava.net.useSystemProxies=false -Djava.net.preferIPv4Stack=true -Dmanagement.zipkin.tracing.endpoint=http://192.168.49.1:9411/api/v2/spans"

@@ -11,6 +11,9 @@ services:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
       - KC_HEALTH_ENABLED=true
+      - KC_HOSTNAME=keycloak
+      - KC_HOSTNAME_STRICT=false
+      - KC_HTTP_HOST=0.0.0.0
     volumes:
       - ./keycloak/data:/opt/keycloak/data/import
     ports:
@@ -21,49 +24,18 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
-
-  kafka:
-    image: bitnamilegacy/kafka:3.5.1-debian-11-r61
-    container_name: kafka
-    ports:
-      - "9092:9092"
-      - "9094:9094"
-    environment:
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_CFG_NODE_ID=1
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    volumes:
-      - /bitnami/kafka
-    healthcheck:
-      test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server kafka:9092 --list" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    depends_on:
-      - kafka
-    ports:
-      - "8090:8080"
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=${KAFKA_CLUSTERS_NAME}
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
-      - DYNAMIC_CONFIG_ENABLED=true
+    networks:
+      - my-bank-app-bridge
 
   zipkin:
     image: openzipkin/zipkin:3.5
     container_name: zipkin
-    depends_on:
-      - kafka
+    environment:
+      - STORAGE_TYPE=mem
+      - ZIPKIN_HTTP_PORT=9411
+      - QUERY_PORT=9411
+      - ZIPKIN_STRICT_TRACE_ID=false
+      - JAVA_OPTS=-Xms256m -Xmx512m -Darmeria.defaultMaxRequestLength=10485760
     ports:
       - "9411:9411"
     healthcheck:
@@ -72,21 +44,23 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    networks:
+      - my-bank-app-bridge
 
   prometheus:
     image: prom/prometheus:v3.11.3
     container_name: prometheus
-    ports:
-      - "9090:9090"
+    network_mode: host
+#    ports:
+#      - "9090:9090"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus-k8s.yml:/etc/prometheus/prometheus.yml
       - /prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=15d'
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - '--web.listen-address=0.0.0.0:9090'
 
   grafana:
     image: grafana/grafana:13.0
@@ -96,7 +70,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_DASHBOARDS_ALLOW_UI_UPDATES=true
-      - PROMETHEUS_URL=http://prometheus:9090
+      - PROMETHEUS_URL=http://host.docker.internal:9090
     depends_on:
       - prometheus
     links:
@@ -105,6 +79,10 @@ services:
       - /var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - my-bank-app-bridge
 
   elasticsearch:
     image: elasticsearch:8.12.0
@@ -122,12 +100,13 @@ services:
     ports:
       - "9200:9200"
     mem_limit: 1g
+    networks:
+      - my-bank-app-bridge
 
   logstash:
     image: logstash:8.12.0
     container_name: logstash
     depends_on:
-      - kafka
       - elasticsearch
     environment:
       - "LS_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -135,6 +114,11 @@ services:
       - ./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     ports:
       - "5044:5044"
+    extra_hosts:
+      - "my-bank-app:host-gateway"
+      - "host.docker.internal:host-gateway"
+    networks:
+      - my-bank-app-bridge
 
   kibana:
     image: kibana:8.12.0
@@ -146,6 +130,8 @@ services:
     mem_limit: 1g
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - my-bank-app-bridge
 
   kibana-provisioning:
     image: curlimages/curl:latest
@@ -165,59 +151,30 @@ services:
       "
     depends_on:
       - kibana
+    networks:
+      - my-bank-app-bridge
 
-  accountsdata:
-    image: postgres:17-alpine
-    container_name: accountsdata
-    restart: unless-stopped
+  frontui:
+    container_name: frontui
+    build:
+      context: .
+      dockerfile: ./frontui/Dockerfile
+    network_mode: host
     environment:
-      POSTGRES_DB: ${ACCOUNTS_DB_NAME}
-      POSTGRES_USER: ${ACCOUNTS_DB_USERNAME}
-      POSTGRES_PASSWORD: ${ACCOUNTS_DB_PASSWORD}
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${ACCOUNTS_DB_USERNAME} -d ${ACCOUNTS_DB_NAME}" ]
-      interval: 5s
+      - FRONT_UI_PORT=8089
+      - GATEWAY_HOST=my-bank-app
+      - GATEWAY_PORT=80
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/my-bank-app-realm
+      - KEYCLOAK_FRONT_UI_SECRET=${KEYCLOAK_FRONT_UI_SECRET}
+      - LOGSTASH_HOST=localhost
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      kibana:
+        condition: service_started
+#    ports:
+#      - "8089:8089"
 
-  cashdata:
-    image: postgres:17-alpine
-    container_name: cashdata
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${CASH_DB_NAME}
-      POSTGRES_USER: ${CASH_DB_USERNAME}
-      POSTGRES_PASSWORD: ${CASH_DB_PASSWORD}
-    ports:
-      - "5434:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${CASH_DB_USERNAME} -d ${CASH_DB_NAME}" ]
-      interval: 5s
-
-  transferdata:
-    image: postgres:17-alpine
-    container_name: transferdata
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${TRANSFER_DB_NAME}
-      POSTGRES_USER: ${TRANSFER_DB_USERNAME}
-      POSTGRES_PASSWORD: ${TRANSFER_DB_PASSWORD}
-    ports:
-      - "5435:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${TRANSFER_DB_USERNAME} -d ${TRANSFER_DB_NAME}" ]
-      interval: 5s
-
-  notificationsdata:
-    image: postgres:17-alpine
-    container_name: notificationsdata
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${NOTIFICATIONS_DB_NAME}
-      POSTGRES_USER: ${NOTIFICATIONS_DB_USERNAME}
-      POSTGRES_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD}
-    ports:
-      - "5436:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${NOTIFICATIONS_DB_USERNAME} -d ${NOTIFICATIONS_DB_NAME}" ]
-      interval: 5s
+networks:
+  my-bank-app-bridge:
+    driver: bridge

@@ -17,7 +17,7 @@ public class SecurityConfiguration {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth -> auth
-                        .anyExchange().permitAll()
+                        .pathMatchers("/actuator/**", "/*/actuator/**", "/actuator/prometheus", "/*/actuator/prometheus").permitAll()
                 )
                 .build();
     }
