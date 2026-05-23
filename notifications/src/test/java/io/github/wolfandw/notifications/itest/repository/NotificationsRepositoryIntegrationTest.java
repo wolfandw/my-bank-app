@@ -57,7 +57,7 @@ public class NotificationsRepositoryIntegrationTest extends BaseNotificationsInt
     void findByOutboxIdAndSentTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Notification notification = new Notification();
-        notification.setUserId("useer");
+        notification.setUserLogin("useer");
         notification.setOutboxId(outboxId);
         notification.setSent(false);
         notification.setMessage("test message");
@@ -68,7 +68,7 @@ public class NotificationsRepositoryIntegrationTest extends BaseNotificationsInt
         }).verifyComplete();
 
         notification = new Notification();
-        notification.setUserId("user");
+        notification.setUserLogin("user");
         notification.setOutboxId(outboxId);
         notification.setSent(true);
         notification.setMessage("test message");

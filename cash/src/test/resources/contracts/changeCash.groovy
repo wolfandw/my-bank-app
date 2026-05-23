@@ -11,7 +11,7 @@ Contract.make {
             queryParameters {
                 parameter 'login': 'user'
                 parameter 'value': '10'
-                parameter 'action': 'PUT'
+                parameter 'action': 'DEPOSIT'
             }
         }
         headers {

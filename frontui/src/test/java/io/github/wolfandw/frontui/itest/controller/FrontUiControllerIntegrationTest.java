@@ -122,7 +122,7 @@ public class FrontUiControllerIntegrationTest {
                     .path("/cash")
                     .queryParam("login", "user")
                     .queryParam("value", BigDecimal.TEN)
-                    .queryParam("action",CashAction.PUT)
+                    .queryParam("action",CashAction.DEPOSIT)
                     .build())
             .exchange()
             .expectStatus().isFound();
@@ -147,7 +147,7 @@ public class FrontUiControllerIntegrationTest {
                     .path("/cash")
                     .queryParam("login", "user")
                     .queryParam("value", BigDecimal.TEN)
-                    .queryParam("action", CashAction.PUT)
+                    .queryParam("action", CashAction.DEPOSIT)
                     .build())
             .exchange()
             .expectStatus().is3xxRedirection();

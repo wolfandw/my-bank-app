@@ -57,7 +57,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
         return outboxRepository
                 .findAllBySent(false)
                 .flatMap(this::sendOutbox)
-                .doOnNext(outbox -> businessMetricIncrementor.incrementOutboxSuccess(outbox.getUserId()))
+                .doOnNext(outbox -> businessMetricIncrementor.incrementOutboxSuccess(outbox.getUserLogin()))
                 .contextCapture();
     }
 
@@ -79,7 +79,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
                 .next()
                 .flatMap(this::markSent)
                 .onErrorResume(e -> {
-                    businessMetricIncrementor.incrementOutboxFailure(outbox.getUserId());
+                    businessMetricIncrementor.incrementOutboxFailure(outbox.getUserLogin());
                     LOG.error(NOTIFICATIONS_API_UNAVAILABLE.formatted(e.getMessage()), e);
                     return Mono.empty();
                 });

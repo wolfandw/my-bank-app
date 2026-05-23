@@ -87,7 +87,7 @@ public class FrontUiServiceTest {
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.userId()).isEqualTo(operationResultDto.userId());
                     assertThat(actualResult.accepted()).isEqualTo(operationResultDto.accepted());

@@ -94,7 +94,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isFalse();
                 }).verifyComplete();
@@ -114,7 +114,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();

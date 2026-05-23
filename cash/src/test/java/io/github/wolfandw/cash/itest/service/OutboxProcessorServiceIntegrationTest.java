@@ -35,7 +35,7 @@ public class OutboxProcessorServiceIntegrationTest extends BaseCashIntegrationTe
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId("user");
+        outbox.setUserLogin("user");
         outbox.setMessage("test message");
 
         SenderRecord<UUID, Outbox, UUID> record =

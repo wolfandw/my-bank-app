@@ -44,7 +44,7 @@ public class NotificationsServiceImpl implements NotificationsService {
                    containerFactory = "kafkaListenerContainerFactory")
     public void listen(ConsumerRecord<UUID, Outbox> record) {
         LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию, топик = " + record.topic());
-        requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage())
+        requestNotification(record.value().getId(), record.value().getUserLogin(), record.value().getMessage())
                 .contextCapture().block();
     }
 
@@ -72,7 +72,7 @@ public class NotificationsServiceImpl implements NotificationsService {
     private Mono<Notification> requestNotification(UUID outboxId, String userId, String message) {
         LOG.debug("Notifications. Обрабатывается запрос на отправку уведомления");
         Notification notification = new Notification();
-        notification.setUserId(userId);
+        notification.setUserLogin(userId);
         notification.setOutboxId(outboxId);
         notification.setMessage(message);
         return notificationsRepository.save(notification);
@@ -83,12 +83,12 @@ public class NotificationsServiceImpl implements NotificationsService {
         notification.setSent(true);
         return notificationsRepository.save(notification).map(sentNotification -> {
             // собственно отправка уведомлени
-            businessMetricIncrementor.incrementNotificationSuccess(sentNotification.getUserId());
+            businessMetricIncrementor.incrementNotificationSuccess(sentNotification.getUserLogin());
             LOG.info("Notifications. Уведомление отправлено: '{}'", sentNotification.getMessage());
             return sentNotification;
         })
         .onErrorResume(e -> {
-            businessMetricIncrementor.incrementNotificationFailure(notification.getUserId());
+            businessMetricIncrementor.incrementNotificationFailure(notification.getUserLogin());
             LOG.error("Notifications. Уведомление НЕ отправлено: '{}'", notification.getMessage(), e);
             return Mono.empty();
         });

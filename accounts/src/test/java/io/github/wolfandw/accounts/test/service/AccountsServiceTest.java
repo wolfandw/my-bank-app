@@ -65,7 +65,7 @@ public class AccountsServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId("user");
+        outbox.setUserLogin("user");
         outbox.setMessage("test message");
 
         UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
@@ -129,7 +129,7 @@ public class AccountsServiceTest {
                 .thenReturn(Mono.just(account));
 
         OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", true, "test message");
-        StepVerifier.create(accountService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(accountService.changeCash("user", BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.userId()).isEqualTo(operationResultDto.userId());
                     AssertionsForClassTypes.assertThat(actualResult.accepted()).isEqualTo(operationResultDto.accepted());
@@ -169,7 +169,7 @@ public class AccountsServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId("user");
+        outbox.setUserLogin("user");
         outbox.setMessage("test message");
         when(outboxRepository.save(any(Outbox.class)))
                 .thenReturn(Mono.just(outbox));

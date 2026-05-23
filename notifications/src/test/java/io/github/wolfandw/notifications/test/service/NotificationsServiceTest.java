@@ -50,7 +50,7 @@ public class NotificationsServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId("user");
+        outbox.setUserLogin("user");
         outbox.setMessage("test message, топик: " + topic);
 
         try (MockConsumer<UUID, Outbox> mockConsumer = new MockConsumer<>("earliest")) {
@@ -77,7 +77,7 @@ public class NotificationsServiceTest {
     void processSendingUnsentOutboxTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Notification notification = new Notification();
-        notification.setUserId("user");
+        notification.setUserLogin("user");
         notification.setOutboxId(outboxId);
         notification.setMessage("test message");
         when(notificationsRepository.findAllBySent(any(Boolean.class)))

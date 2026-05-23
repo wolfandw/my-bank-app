@@ -100,7 +100,7 @@ public class TransferServiceImpl implements TransferService {
 
     private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
-        outbox.setUserId(login);
+        outbox.setUserLogin(login);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }

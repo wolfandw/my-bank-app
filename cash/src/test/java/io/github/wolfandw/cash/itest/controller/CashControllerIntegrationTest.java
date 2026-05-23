@@ -79,7 +79,7 @@ public class CashControllerIntegrationTest {
                         .path("/api/cash")
                         .queryParam("login", "user")
                         .queryParam("value", BigDecimal.TEN)
-                        .queryParam("action", CashAction.PUT)
+                        .queryParam("action", CashAction.DEPOSIT)
                         .build())
                 .exchange()
                 .expectStatus().isFound();
@@ -104,7 +104,7 @@ public class CashControllerIntegrationTest {
                         .path("/api/cash")
                         .queryParam("login", "user")
                         .queryParam("value", BigDecimal.TEN)
-                        .queryParam("action", CashAction.PUT)
+                        .queryParam("action", CashAction.DEPOSIT)
                         .build())
                 .exchange()
                 .expectStatus().isOk()

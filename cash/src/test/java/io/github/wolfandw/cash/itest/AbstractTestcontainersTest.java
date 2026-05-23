@@ -52,7 +52,7 @@ public abstract class AbstractTestcontainersTest {
     private List<Outbox> getOutboxes(boolean sent) {
         return IntStream.range(0, 3).mapToObj(i -> {
             Outbox outbox = new Outbox();
-            outbox.setUserId("user");
+            outbox.setUserLogin("user");
             outbox.setMessage("test message " + i);
             outbox.setSent(sent);
             return outbox;

@@ -40,7 +40,7 @@ class CashControllerTest {
         when(cashService.changeCash(any(String.class), any(BigDecimal.class), any(CashAction.class)))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(cashController.editCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.PUT), createToken(userId)))
+        StepVerifier.create(cashController.editCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.DEPOSIT), createToken(userId)))
                 .consumeNextWith(actualResult -> {
                     assertThat(actualResult.userId()).isEqualTo(operationResultDto.userId());
                     assertThat(actualResult.accepted()).isEqualTo(operationResultDto.accepted());
@@ -55,7 +55,7 @@ class CashControllerTest {
         when(cashService.changeCash(any(String.class), any(BigDecimal.class), any(CashAction.class)))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(cashController.editCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.PUT), createToken(userId)))
+        StepVerifier.create(cashController.editCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.DEPOSIT), createToken(userId)))
                 .consumeNextWith(actualResult -> {
                     assertThat(actualResult.userId()).isEqualTo(operationResultDto.userId());
                     assertThat(actualResult.accepted()).isEqualTo(operationResultDto.accepted());
