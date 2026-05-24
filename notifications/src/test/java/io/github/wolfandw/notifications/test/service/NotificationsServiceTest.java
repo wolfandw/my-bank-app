@@ -1,5 +1,6 @@
 package io.github.wolfandw.notifications.test.service;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
@@ -40,13 +41,16 @@ public class NotificationsServiceTest {
     @InjectMocks
     private NotificationsServiceImpl notificationsService;
 
+    @Mock
+    private BusinessMetricIncrementor businessMetricIncrementor;
+
     @ParameterizedTest
     @ValueSource(strings = {"${accounts.kafka.topic}", "@{cash.kafka.topic}", "@{transfer.kafka.topic}"})
     void consumerNotificationTest(String topic) {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserLogin("user");
         outbox.setMessage("test message, топик: " + topic);
 
         try (MockConsumer<UUID, Outbox> mockConsumer = new MockConsumer<>("earliest")) {
@@ -73,7 +77,7 @@ public class NotificationsServiceTest {
     void processSendingUnsentOutboxTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Notification notification = new Notification();
-        notification.setUserId(outboxId);
+        notification.setUserLogin("user");
         notification.setOutboxId(outboxId);
         notification.setMessage("test message");
         when(notificationsRepository.findAllBySent(any(Boolean.class)))

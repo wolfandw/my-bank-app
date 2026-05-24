@@ -73,12 +73,12 @@ public class UserServiceImpl implements UserService {
 
     private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
-        outbox.setUserId(userId);
+        outbox.setUserLogin(login);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }
 
     private String createMessage(String login, String message) {
-        return message + ": '" + login + "'";
+        return message + ", пользователь: " + login;
     }
 }

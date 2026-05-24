@@ -48,6 +48,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(AccountDto.class))
@@ -67,6 +68,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(AccountDto.class))
@@ -86,12 +88,13 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isFalse();
                 }).verifyComplete();
@@ -105,12 +108,13 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();
@@ -123,6 +127,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))
@@ -142,6 +147,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))
@@ -160,6 +166,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))
@@ -179,6 +186,7 @@ public class FrontUiServiceIntegrationTest extends BaseFrontUiIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))

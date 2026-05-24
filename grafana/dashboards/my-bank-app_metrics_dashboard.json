@@ -1,0 +1,132 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Снятие наличных (Change Cash Get Rate)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        { "expr": "rate(change_cash_get_total[1m])", "legendFormat": "{{status}}", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line", "lineInterpolation": "smooth" }, "unit": "ops" }
+      }
+    },
+    {
+      "title": "Переводы денег (Transfer Cash Rate)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "targets": [
+        { "expr": "rate(transfer_cash_total[1m])", "legendFormat": "{{status}}", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line", "lineInterpolation": "smooth" }, "unit": "ops" }
+      }
+    },
+    {
+      "title": "Отправка сообщений в сервис нотификаций (Send Unsent Outbox)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "targets": [
+        { "expr": "rate(send_unsent_outbox_total[1m])", "legendFormat": "{{status}} ({{application}})", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line" }, "unit": "ops" }
+      }
+    },
+    {
+      "title": "Отправка нотификаций получателям (Send Unsent Notification)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "targets": [
+        { "expr": "rate(send_unsent_notification_total[1m])", "legendFormat": "{{status}}", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line" }, "unit": "ops" }
+      }
+    },
+    {
+      "title": "Снятие наличных — Ошибки по логинам (Change Cash Get Failures by Login)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        {
+          "expr": "sum by (login) (rate(change_cash_get_total{status=\"Failure\"}[1m]))",
+          "legendFormat": "Login: {{login}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line", "lineInterpolation": "smooth" }, "unit": "ops" }
+      }
+    },
+    {
+      "title": "Переводы денег — Ошибки по логинам (Transfer Cash Failures by Login/Recipient)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "sum by (login, recipient) (rate(transfer_cash_total{status=\"Failure\"}[1m]))",
+          "legendFormat": "From: {{login}} To: {{recipient}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line", "lineInterpolation": "smooth" }, "unit": "ops" }
+      }
+    },
+    {
+      "title": "Отправка в сервис нотификаций — Ошибки по логинам (Send Outbox Failures)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "sum by (login) (rate(send_unsent_outbox_total{status=\"Failure\"}[1m]))",
+          "legendFormat": "Login: {{login}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line" }, "unit": "ops" }
+      }
+    },
+    {
+      "title": "Доставка нотификаций получателям — Ошибки по логинам (Send Notification Failures)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "sum by (login) (rate(send_unsent_notification_total{status=\"Failure\"}[1m]))",
+          "legendFormat": "Login: {{login}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line" }, "unit": "ops" }
+      }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["business"],
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "My Bank Metrics",
+  "version": 1
+}

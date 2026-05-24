@@ -1,11 +1,13 @@
 package io.github.wolfandw.chassis.configuration;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.OutboxSchedulerService;
 import io.github.wolfandw.chassis.service.impl.OutboxProcessorServiceImpl;
 import io.github.wolfandw.chassis.service.impl.OutboxSchedulerServiceImpl;
+import io.micrometer.observation.ObservationRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -24,12 +26,17 @@ public class OutboxProcessorAutoConfiguration {
     @Bean
     public OutboxProcessorService outboxProcessorService(@Lazy KafkaSender<UUID, Outbox> kafkaSender,
                                                          @Value("${spring.kafka.topics.topic}") String topic,
-                                                         OutboxRepository outboxRepository) {
-        return new OutboxProcessorServiceImpl(kafkaSender, topic, outboxRepository);
+                                                         OutboxRepository outboxRepository,
+                                                         BusinessMetricIncrementor businessMetricIncrementor) {
+        return new OutboxProcessorServiceImpl(kafkaSender,
+                topic,
+                outboxRepository,
+                businessMetricIncrementor);
     }
 
     @Bean
-    public OutboxSchedulerService outboxScheduleService(OutboxProcessorService outboxProcessorService) {
-        return new OutboxSchedulerServiceImpl(outboxProcessorService);
+    public OutboxSchedulerService outboxScheduleService(OutboxProcessorService outboxProcessorService,
+                                                        ObservationRegistry observationRegistry) {
+        return new OutboxSchedulerServiceImpl(outboxProcessorService, observationRegistry);
     }
 }

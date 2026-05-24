@@ -91,7 +91,7 @@ public class FrontUiControllerWebFluxTest {
                     .path("/cash")
                     .queryParam("login", "user")
                     .queryParam("value", BigDecimal.TEN)
-                    .queryParam("action",CashAction.PUT)
+                    .queryParam("action",CashAction.DEPOSIT)
                     .build())
             .exchange()
             .expectStatus().isUnauthorized();
@@ -116,7 +116,7 @@ public class FrontUiControllerWebFluxTest {
                     .path("/cash")
                     .queryParam("login", "user")
                     .queryParam("value", BigDecimal.TEN)
-                    .queryParam("action", CashAction.PUT)
+                    .queryParam("action", CashAction.DEPOSIT)
                     .build())
             .exchange()
             .expectStatus().is3xxRedirection();

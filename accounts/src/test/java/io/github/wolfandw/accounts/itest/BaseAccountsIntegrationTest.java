@@ -33,8 +33,7 @@ import java.util.UUID;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "spring.cloud.compatibility-verifier.enabled=false",
-                "spring.main.allow-bean-definition-overriding=true",
-                "spring.liquibase.enabled=false"
+                "spring.main.allow-bean-definition-overriding=true"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

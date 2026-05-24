@@ -50,7 +50,7 @@ public class AccountsController {
     /**
      * Изменяет состояние наличности.
      *
-     * @param request сумма списания (пополнения) и действие с наличностью (GET - снять, PUT - пополнить)
+     * @param request сумма списания (пополнения) и действие с наличностью (WITHDRAW - снять, DEPOSIT - пополнить)
      * @return DTO-модель результата операции
      */
     @PostMapping("/api/cash")

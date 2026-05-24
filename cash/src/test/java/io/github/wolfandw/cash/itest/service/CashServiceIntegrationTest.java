@@ -37,7 +37,7 @@ public class CashServiceIntegrationTest extends BaseCashIntegrationTest {
 
     @Test
     void changeCashIsUnauthorizedTest() {
-        StepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.PUT))
+        StepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.DEPOSIT))
                 .verifyError(AuthorizationDeniedException.class);
     }
 
@@ -49,12 +49,13 @@ public class CashServiceIntegrationTest extends BaseCashIntegrationTest {
 
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(cashService.changeCash("user", BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.accepted()).isTrue();
                 }).verifyComplete();

@@ -4,6 +4,8 @@ import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.transfer.service.TransferService;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,11 @@ public class TransferServiceImpl implements TransferService {
 
     private static final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
 
+    private static final String TRACEPARENT = "traceparent";
+    private static final String TRACEPARENT_FORMAT = "00-%s-%s-01";
+
+    private final Tracer tracer;
+
     private final WebClient webClient;
     private final OutboxRepository outboxRepository;
 
@@ -48,10 +55,12 @@ public class TransferServiceImpl implements TransferService {
      *
      * @param webClient веб-клиент
      * @param outboxRepository репозиторий сообщений
+     * @param tracer трассировщик
      */
-    public TransferServiceImpl(WebClient webClient, OutboxRepository outboxRepository) {
+    public TransferServiceImpl(WebClient webClient, OutboxRepository outboxRepository, Tracer tracer) {
         this.webClient = webClient;
         this.outboxRepository = outboxRepository;
+        this.tracer = tracer;
     }
 
     @Override
@@ -61,6 +70,7 @@ public class TransferServiceImpl implements TransferService {
         LOG.debug("Transfer -> Accounts. Отправка запроса на перевод наличных");
         return webClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, value, login, recipient))
+                .header(TRACEPARENT, getTraceParent())
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
                 .flatMap(operationResultDto -> outbox(operationResultDto).thenReturn(operationResultDto))
@@ -90,12 +100,19 @@ public class TransferServiceImpl implements TransferService {
 
     private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
-        outbox.setUserId(userId);
+        outbox.setUserLogin(login);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }
 
     private String createMessage(String login, String message) {
-        return message + ": '" + login + "'";
+        return message + ", пользователь: " + login;
+    }
+
+    private String getTraceParent() {
+        Span currentSpan = tracer.currentSpan();
+        return String.format(TRACEPARENT_FORMAT,
+                currentSpan != null ? currentSpan.context().traceId() : "",
+                currentSpan != null ? currentSpan.context().spanId() : "");
     }
 }

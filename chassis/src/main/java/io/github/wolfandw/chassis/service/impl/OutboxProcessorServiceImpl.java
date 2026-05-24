@@ -1,5 +1,6 @@
 package io.github.wolfandw.chassis.service.impl;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
@@ -25,6 +26,7 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
     private final KafkaSender<UUID, Outbox> kafkaSender;
     private final String topic;
     private final OutboxRepository outboxRepository;
+    private final BusinessMetricIncrementor businessMetricIncrementor;
 
     /**
      * Создает сервис.
@@ -32,33 +34,52 @@ public class OutboxProcessorServiceImpl implements OutboxProcessorService {
      * @param kafkaSender реактивный продюсер Kafka
      * @param topic топик Kafka
      * @param outboxRepository репозиторий сообщений
+     * @param businessMetricIncrementor инкрементор счетчиков
      */
     public OutboxProcessorServiceImpl(KafkaSender<UUID, Outbox> kafkaSender,
                                       String topic,
-                                      OutboxRepository outboxRepository) {
+                                      OutboxRepository outboxRepository,
+                                      BusinessMetricIncrementor businessMetricIncrementor) {
         this.kafkaSender = kafkaSender;
         this.topic = topic;
         this.outboxRepository = outboxRepository;
+        this.businessMetricIncrementor = businessMetricIncrementor;
+    }
+
+
+    @Override
+    public Mono<Void> processDeletingSentOutbox() {
+        return outboxRepository.deleteAllBySent(true).contextCapture();
     }
 
     @Override
     public Flux<Outbox> processSendingUnsentOutbox() {
-        return outboxRepository.findAllBySent(false).flatMap(this::sendOutbox);
+        return outboxRepository
+                .findAllBySent(false)
+                .flatMap(this::sendOutbox)
+                .doOnNext(outbox -> businessMetricIncrementor.incrementOutboxSuccess(outbox.getUserLogin()))
+                .contextCapture();
     }
 
     @Override
-    public Mono<Void> processDeletingSentOutbox() {
-        return outboxRepository.deleteAllBySent(true);
+    public Mono<Boolean> existsUnsentOutbox() {
+        return outboxRepository.existsBySent(false);
+    }
+
+    @Override
+    public Mono<Boolean> existsSentOutbox() {
+        return outboxRepository.existsBySent(true);
     }
 
     private Mono<Outbox> sendOutbox(Outbox outbox) {
         LOG.debug("Outbox -> Notifications processor. Отправка запроса на нотификацию " + outbox.getMessage());
         SenderRecord<UUID, Outbox, UUID> record =
                 SenderRecord.create(new ProducerRecord<>(topic, outbox.getId(), outbox), outbox.getId());
-        return kafkaSender.send(Flux.just(record))
+        return kafkaSender.send(Mono.just(record))
                 .next()
                 .flatMap(this::markSent)
                 .onErrorResume(e -> {
+                    businessMetricIncrementor.incrementOutboxFailure(outbox.getUserLogin());
                     LOG.error(NOTIFICATIONS_API_UNAVAILABLE.formatted(e.getMessage()), e);
                     return Mono.empty();
                 });

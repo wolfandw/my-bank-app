@@ -1,0 +1,180 @@
+services:
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.1
+    container_name: keycloak
+    command: start-dev
+      --import-realm
+      --http-port=8080
+      --http-enabled=true
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_HOSTNAME=keycloak
+      - KC_HOSTNAME_STRICT=false
+      - KC_HTTP_HOST=0.0.0.0
+    volumes:
+      - ./keycloak/data:/opt/keycloak/data/import
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    healthcheck:
+      test: [ 'CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:9000/health/ready' ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - my-bank-app-bridge
+
+  zipkin:
+    image: openzipkin/zipkin:3.5
+    container_name: zipkin
+    environment:
+      - STORAGE_TYPE=mem
+      - ZIPKIN_HTTP_PORT=9411
+      - QUERY_PORT=9411
+      - ZIPKIN_STRICT_TRACE_ID=false
+      - JAVA_OPTS=-Xms256m -Xmx512m -Darmeria.defaultMaxRequestLength=10485760
+    ports:
+      - "9411:9411"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://zipkin:9411/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - my-bank-app-bridge
+
+  prometheus:
+    image: prom/prometheus:v3.11.3
+    container_name: prometheus
+    network_mode: host
+#    ports:
+#      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus-k8s.yml:/etc/prometheus/prometheus.yml
+      - /prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.listen-address=0.0.0.0:9090'
+
+  grafana:
+    image: grafana/grafana:13.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_ALLOW_UI_UPDATES=true
+      - PROMETHEUS_URL=http://host.docker.internal:9090
+    depends_on:
+      - prometheus
+    links:
+      - prometheus
+    volumes:
+      - /var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - my-bank-app-bridge
+
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    mem_limit: 1g
+    networks:
+      - my-bank-app-bridge
+
+  logstash:
+    image: logstash:8.12.0
+    container_name: logstash
+    depends_on:
+      - elasticsearch
+    environment:
+      - "LS_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    ports:
+      - "5044:5044"
+    extra_hosts:
+      - "my-bank-app:host-gateway"
+      - "host.docker.internal:host-gateway"
+    networks:
+      - my-bank-app-bridge
+
+  kibana:
+    image: kibana:8.12.0
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    mem_limit: 1g
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - my-bank-app-bridge
+
+  kibana-provisioning:
+    image: curlimages/curl:latest
+    container_name: kibana_provisioning
+    volumes:
+      - ./elk/kibana_import.ndjson:/tmp/kibana_import.ndjson:ro
+    command: >
+      sh -c "
+        echo 'Ожидание запуска Kibana...';
+        while [ $$(curl -s -o /dev/null -w '%{http_code}' http://kibana:5601/api/status) -ne 200 ]; do 
+          sleep 5; 
+        done;
+        echo 'Kibana готова! Начинаем импорт настроек...';
+        curl -X POST http://kibana:5601/api/saved_objects/_import -H 'kbn-xsrf: true' --form file=@/tmp/kibana_import.ndjson;
+        echo '';
+        echo 'Импорт успешно завершен!';
+      "
+    depends_on:
+      - kibana
+    networks:
+      - my-bank-app-bridge
+
+  frontui:
+    container_name: frontui
+    build:
+      context: .
+      dockerfile: ./frontui/Dockerfile
+    network_mode: host
+    environment:
+      - FRONT_UI_PORT=8089
+      - GATEWAY_HOST=my-bank-app
+      - GATEWAY_PORT=80
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/my-bank-app-realm
+      - KEYCLOAK_FRONT_UI_SECRET=${KEYCLOAK_FRONT_UI_SECRET}
+      - LOGSTASH_HOST=localhost
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      kibana:
+        condition: service_started
+#    ports:
+#      - "8089:8089"
+
+networks:
+  my-bank-app-bridge:
+    driver: bridge

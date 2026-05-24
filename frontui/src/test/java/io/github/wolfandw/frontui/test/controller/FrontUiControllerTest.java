@@ -32,7 +32,7 @@ class FrontUiControllerTest {
     private FrontUiController frontUiController;
 
     @Test
-    void getAccountIsUnauthorizedTest() {
+    void getAccountEmptyTest() {
         UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         when(frontUiService.getAccount()).thenReturn(Mono.empty());
 
@@ -55,32 +55,70 @@ class FrontUiControllerTest {
     }
 
     @Test
-    void changeCashIsUnauthorizedTest() {
+    void changeCashPutRedirectTest() {
         OperationResultDto operationResultDto = new OperationResultDto(new UUID(0,0), "user", false, "error message");
         when(frontUiService.changeCash(any(BigDecimal.class), any(CashAction.class)))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiController.changeCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.PUT)))
+        StepVerifier.create(frontUiController.changeCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.DEPOSIT)))
                 .consumeNextWith(actualResult -> {
                     assertThat(actualResult).isEqualTo("redirect:/account?error=error+message");
                 }).verifyComplete();
     }
 
     @Test
-    void changeCashTest() {
+    void changeCashPutTest() {
         UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         OperationResultDto operationResultDto = new OperationResultDto(userId, "user", true, "test message");
         when(frontUiService.changeCash(any(BigDecimal.class), any(CashAction.class)))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiController.changeCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.PUT)))
+        StepVerifier.create(frontUiController.changeCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.DEPOSIT)))
                 .consumeNextWith(actualResult -> {
                     assertThat(actualResult).isEqualTo("redirect:/account?info=test+message");
                 }).verifyComplete();
     }
 
     @Test
-    void transferCashIsUnauthorizedTest() {
+    void changeCashGetRedirectTest() {
+        OperationResultDto operationResultDto = new OperationResultDto(new UUID(0,0), "user", false, "error message");
+        when(frontUiService.changeCash(any(BigDecimal.class), any(CashAction.class)))
+                .thenReturn(Mono.just(operationResultDto));
+
+        StepVerifier.create(frontUiController.changeCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.WITHDRAW)))
+                .consumeNextWith(actualResult -> {
+                    assertThat(actualResult).isEqualTo("redirect:/account?error=error+message");
+                }).verifyComplete();
+    }
+
+    @Test
+    void changeCashGetTest() {
+        UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        OperationResultDto operationResultDto = new OperationResultDto(userId, "user", true, "test message");
+        when(frontUiService.changeCash(any(BigDecimal.class), any(CashAction.class)))
+                .thenReturn(Mono.just(operationResultDto));
+
+        StepVerifier.create(frontUiController.changeCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.WITHDRAW)))
+                .consumeNextWith(actualResult -> {
+                    assertThat(actualResult).isEqualTo("redirect:/account?info=test+message");
+                }).verifyComplete();
+    }
+
+    @Test
+    void changeCashGetInsufficientFundsTest() {
+        UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        OperationResultDto operationResultDto = new OperationResultDto(userId, "user", false, "InsufficientFunds");
+        when(frontUiService.changeCash(any(BigDecimal.class), any(CashAction.class)))
+                .thenReturn(Mono.just(operationResultDto));
+
+        StepVerifier.create(frontUiController.changeCash(new ChangeCashRequestDto("user", BigDecimal.TEN, CashAction.WITHDRAW)))
+                .consumeNextWith(actualResult -> {
+                    assertThat(actualResult).isEqualTo("redirect:/account?error=InsufficientFunds");
+                }).verifyComplete();
+    }
+
+    @Test
+    void transferCashRedirectTest() {
         OperationResultDto operationResultDto = new OperationResultDto(new UUID(0,0), "user", false, "error message");
         when(frontUiService.transferCash(any(BigDecimal.class), any(String.class)))
                 .thenReturn(Mono.just(operationResultDto));
@@ -105,7 +143,20 @@ class FrontUiControllerTest {
     }
 
     @Test
-    void changeUserDataIsUnauthorizedTest() {
+    void transferCashInsufficientFundsTest() {
+        UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        OperationResultDto operationResultDto = new OperationResultDto(userId, "user", false, "InsufficientFunds");
+        when(frontUiService.transferCash(any(BigDecimal.class), any(String.class)))
+                .thenReturn(Mono.just(operationResultDto));
+
+        StepVerifier.create(frontUiController.transferCash(new TransferCashRequestDto("user", BigDecimal.TEN, "admin")))
+                .consumeNextWith(actualResult -> {
+                    assertThat(actualResult).isEqualTo("redirect:/account?error=InsufficientFunds");
+                }).verifyComplete();
+    }
+
+    @Test
+    void changeUserDataRedirectTest() {
         UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         OperationResultDto operationResultDto = new OperationResultDto(new UUID(0,0), "user", false, "error message");
         when(frontUiService.changeUserData(any(String.class), any(LocalDate.class)))

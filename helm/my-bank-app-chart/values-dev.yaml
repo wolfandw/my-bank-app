@@ -25,12 +25,6 @@ transfer-chart:
     limits: { memory: "512Mi", cpu: "500m" }
     requests: { memory: "256Mi", cpu: "100m" }
 
-frontui-chart:
-  replicaCount: 1
-  resources:
-    limits: { memory: "512Mi", cpu: "500m" }
-    requests: { memory: "256Mi", cpu: "100m" }
-
 gateway:
   replicaCount: 1
   resources:
@@ -41,4 +35,3 @@ accountsdata: { persistence: { enabled: false } }
 cashdata: { persistence: { enabled: false } }
 notificationsdata: { persistence: { enabled: false } }
 transferdata: { persistence: { enabled: false } }
-keycloak: { postgresql: { persistence: { enabled: false } } }

@@ -8,4 +8,10 @@ import java.util.UUID;
  * DTO-модель аккаунта.
  */
 public record AccountDto(UUID id, UserDto user, BigDecimal balance,  List<UserDto> users) {
+    public AccountDto(UUID id, UserDto user, BigDecimal balance, List<UserDto> users) {
+        this.id = id;
+        this.user = user;
+        this.balance = balance;
+        this.users = List.copyOf(users);
+    }
 }

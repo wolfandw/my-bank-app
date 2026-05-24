@@ -5,9 +5,9 @@ import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
 import io.github.wolfandw.frontui.service.impl.FrontUiServiceImpl;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
@@ -33,8 +34,21 @@ public class FrontUiServiceTest {
     @InjectMocks
     private FrontUiServiceImpl frontUiService;
 
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    @Mock
+    private Tracer tracer;
+
+    @Mock
     private WebClient webClient;
+    @Mock
+    private WebClient.RequestBodyUriSpec requestBodyUriSpec;
+    @Mock
+    private WebClient.RequestHeadersSpec requestHeadersSpec;
+    @Mock
+    private WebClient.ResponseSpec responseSpec;
+    @Mock
+    private WebClient.RequestBodySpec requestBodySpec;
+    @Mock
+    private WebClient.RequestHeadersUriSpec  requestHeadersUriSpec;
 
     @Test
     void getAccountTest() {
@@ -45,10 +59,12 @@ public class FrontUiServiceTest {
         UserDto adminDto = new UserDto(adminId, "admin", "Admin", "1999-01-01");
         AccountDto accountDto = new AccountDto(userId, userDto, BigDecimal.TEN,  List.of(adminDto));
 
-        when(webClient.get()
-                .uri(any(Function.class))
-                .retrieve()
-                .bodyToMono(AccountDto.class))
+        when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.header(any(String.class), any())).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(AccountDto.class))
                 .thenReturn(Mono.just(accountDto));
 
         StepVerifier.create(frontUiService.getAccount()).
@@ -63,13 +79,15 @@ public class FrontUiServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", true, "test message");
 
-        when(webClient.post()
-                .uri(any(Function.class))
-                .retrieve()
-                .bodyToMono(OperationResultDto.class))
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
-        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(frontUiService.changeCash(BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.userId()).isEqualTo(operationResultDto.userId());
                     assertThat(actualResult.accepted()).isEqualTo(operationResultDto.accepted());
@@ -80,10 +98,13 @@ public class FrontUiServiceTest {
     void transferCashTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", true, "test message");
-        when(webClient.post()
-                .uri(any(Function.class))
-                .retrieve()
-                .bodyToMono(OperationResultDto.class))
+
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
 
         StepVerifier.create(frontUiService.transferCash(BigDecimal.TEN, "admin")).
@@ -97,11 +118,15 @@ public class FrontUiServiceTest {
     void changeUserDataTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", true, "test message");
-        when(webClient.post()
-                .uri(any(Function.class))
-                .retrieve()
-                .bodyToMono(OperationResultDto.class))
+
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(any(String.class), any())).thenReturn(requestBodySpec);
+        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        lenient().when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(OperationResultDto.class))
                 .thenReturn(Mono.just(operationResultDto));
+
         StepVerifier.create(frontUiService.changeUserData("User", LocalDate.of(1999, 1, 1))).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.userId()).isEqualTo(operationResultDto.userId());

@@ -26,4 +26,12 @@ public interface OutboxRepository extends R2dbcRepository<Outbox, UUID> {
      * @return ничего
      */
     Mono<Void> deleteAllBySent(boolean sent);
+
+    /**
+     * Проверяет есть ли сообщения по указанному признаку отправления.
+     *
+     * @param sent признак отправленного сообщения
+     * @return {@code true} если есть
+     */
+    Mono<Boolean> existsBySent(boolean sent);
 }

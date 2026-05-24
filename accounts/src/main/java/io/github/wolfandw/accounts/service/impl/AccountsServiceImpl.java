@@ -9,6 +9,7 @@ import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.slf4j.Logger;
@@ -21,8 +22,6 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -36,6 +35,7 @@ public class AccountsServiceImpl implements AccountsService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final OutboxRepository outboxRepository;
+    private final BusinessMetricIncrementor businessMetricIncrementor;
 
     /**
      * Создает сервис счетов.
@@ -43,29 +43,27 @@ public class AccountsServiceImpl implements AccountsService {
      * @param accountRepository репозиторий счетов
      * @param userRepository    репозиторий пользователей
      * @param outboxRepository  репозиторий сообщений
+     * @param businessMetricIncrementor инкрементор счетчиков
      */
     public AccountsServiceImpl(AccountRepository accountRepository,
                                UserRepository userRepository,
-                               OutboxRepository outboxRepository) {
+                               OutboxRepository outboxRepository,
+                               BusinessMetricIncrementor businessMetricIncrementor) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.outboxRepository = outboxRepository;
+        this.businessMetricIncrementor = businessMetricIncrementor;
     }
 
     @Override
     @Transactional
-    @PreAuthorize("hasRole('USER') and hasRole('CASH_WRITE')")
+    @PreAuthorize("hasRole('USER')")
     public Mono<AccountDto> getAccount(String login) {
         LOG.debug(createMessage(login, "Accounts. Обработка запроса на получение данных счета"));
-        Mono<AccountDto> accountDtoMono = getOrCreateUser(login).flatMap(user -> getOrCreateAccount(user).
-                map(account -> new AccountDto(account.getId(), mapToUserDto(user), account.getBalance(), new ArrayList<>())));
-        Mono<List<UserDto>> userDtoListMono = userRepository.findAllByLoginNot(login).map(this::mapToUserDto).collectList();
-        return accountDtoMono.zipWith(userDtoListMono).map(tuple -> {
-            AccountDto accountDto = tuple.getT1();
-            List<UserDto> userDtoList = tuple.getT2();
-            accountDto.users().addAll(userDtoList);
-            return accountDto;
-        }).switchIfEmpty(Mono.error(new NoSuchElementException("Accounts. Не удалось найти информацию о пользователе: %s".formatted(login))));
+        return getOrCreateUser(login).flatMap(user -> getOrCreateAccount(user).
+                flatMap(account -> userRepository.findAllByLoginNot(login).map(this::mapToUserDto).collectList()
+                        .map(userDtoList ->new AccountDto(account.getId(), mapToUserDto(user), account.getBalance(), userDtoList))))
+         .switchIfEmpty(Mono.error(new NoSuchElementException("Accounts. Не удалось найти информацию о пользователе: %s".formatted(login))));
     }
 
     @Override
@@ -76,19 +74,23 @@ public class AccountsServiceImpl implements AccountsService {
         return userRepository.findByLogin(login).flatMap(user -> accountRepository.findByUserId(user.getId()).flatMap(
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
-                    if (action == CashAction.GET) {
+                    if (action == CashAction.WITHDRAW) {
                         if (currentBalance.compareTo(value) < 0) {
                             return Mono.just(new OperationResultDto(user.getId(),
                                     login,
                                     false,
-                                    "Accounts. Недостаточно средств на счете"));
+                                    "Accounts. Недостаточно средств на счете для списания"))
+                                    .doOnNext(dto -> businessMetricIncrementor.incrementChangeCashFailure(login));
                         } else {
                             account.setBalance(currentBalance.subtract(value));
                             return accountRepository.save(account).
-                                    map(changedAccount -> new OperationResultDto(user.getId(),
+                                    map(changedAccount -> {
+                                        businessMetricIncrementor.incrementChangeCashSuccess(login);
+                                        return new OperationResultDto(user.getId(),
                                             login,
                                             true,
-                                            "Accounts. Снято %s руб".formatted(value.toPlainString())));
+                                            "Accounts. Снято %s руб".formatted(value.toPlainString()));
+                                    });
                         }
                     } else {
                         account.setBalance(currentBalance.add(value));
@@ -111,7 +113,8 @@ public class AccountsServiceImpl implements AccountsService {
                 account -> {
                     BigDecimal currentBalance = account.getBalance();
                     if (currentBalance.compareTo(value) < 0) {
-                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете"));
+                        return Mono.just(new OperationResultDto(user.getId(), login, false, "Accounts. Недостаточно средств на счете для перевода получателю: " + recipient))
+                                .doOnNext(dto -> businessMetricIncrementor.incrementTransferCashFailure(login, recipient));
                     }
                     account.setBalance(currentBalance.subtract(value));
                     return userRepository.findByLogin(recipient).flatMap(userRecipient -> accountRepository.findByUserId(userRecipient.getId()).flatMap(
@@ -120,10 +123,13 @@ public class AccountsServiceImpl implements AccountsService {
                                 recipientAccount.setBalance(recipientBalance.add(value));
                                 return accountRepository.save(recipientAccount).
                                         flatMap(changedRecipientAccount -> accountRepository.save(account)).
-                                        map(createdOutbox -> new OperationResultDto(user.getId(),
+                                        map(createdOutbox -> {
+                                            businessMetricIncrementor.incrementTransferCashSuccess(login, recipient);
+                                            return new OperationResultDto(user.getId(),
                                                 login,
                                                 true,
-                                                "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient)));
+                                                "Успешно переведено %s руб клиенту %s".formatted(value.toPlainString(), recipient));
+                                        });
                             }));
                 }
         )).switchIfEmpty(Mono.error(new NoSuchElementException("Accounts. Не удалось выполнить перевод со счета")));
@@ -169,12 +175,12 @@ public class AccountsServiceImpl implements AccountsService {
 
     private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
-        outbox.setUserId(userId);
+        outbox.setUserLogin(login);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }
 
     private String createMessage(String login, String message) {
-        return message + ": '" + login + "'";
+        return message + ", пользователь: " + login;
     }
 }

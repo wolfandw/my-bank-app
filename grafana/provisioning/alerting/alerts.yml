@@ -1,0 +1,81 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: 'my-bank-alerts'
+    folder: 'My Bank Metrics'
+    interval: 10s
+    rules:
+      # Алерт 1: Сбои переводов (Группировка по Отправителю и Получателю)
+      - uid: 'alert_cash_transfer_fail'
+        title: 'CRITICAL: Рост недостаточности средств при переводе денег'
+        condition: 'C'
+        for: '1m'
+        annotations:
+          summary: 'Рост недостаточности средств при переводе денег!'
+          description: 'Пользователь {{ $labels.login }} не смог перевести деньги пользователю {{ $labels.recipient }}. Суммарное количество ошибок за минуту: {{ $values.B }}.'
+        labels:
+          severity: 'critical'
+          tier: 'business'
+        data:
+          - refId: 'A'
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: 'Prometheus'
+            model:
+              expr: 'sum by (login, recipient) (increase(transfer_cash_total{status="Failure"}[1m]))'
+              refId: 'A'
+          - refId: 'B'
+            datasourceUid: '-100'
+            model: { expression: 'A', reducer: 'max', type: 'reduce', refId: 'B' }
+          - refId: 'C'
+            datasourceUid: '-100'
+            model:
+              expression: 'B'
+              type: 'threshold'
+              refId: 'C'
+              conditions:
+                - evaluator:
+                    params: [ 5.0 ] # Порог - более 5 ошибок пары за минуту
+                    type: 'gt'
+                  query:
+                    params: [ 'B' ]
+                  reducer:
+                    params: [ ]
+                    type: 'avg'
+
+      # Алерт 2: Ошибки нотификаций (Группировка по логину пользователя)
+      - uid: 'alert_notifications_fail'
+        title: 'WARNING: Пользователи не получают уведомления'
+        condition: 'C'
+        for: '1m'
+        annotations:
+          summary: 'Пользователи не получают уведомления!'
+          description: 'Сервис не смог отправить нотификацию пользователю {{ $labels.login }}. Текущая скорость ошибок: {{ $values.B }} оп/сек.'
+        labels:
+          severity: 'warning'
+          tier: 'business'
+        data:
+          - refId: 'A'
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: 'Prometheus'
+            model:
+              expr: 'sum by (login) (increase(send_unsent_notification_total{status="Failure"}[1m]))'
+              refId: 'A'
+          - refId: 'B'
+            datasourceUid: '-100'
+            model: { expression: 'A', reducer: 'max', type: 'reduce', refId: 'B' }
+          - refId: 'C'
+            datasourceUid: '-100'
+            model:
+              expression: 'B'
+              type: 'threshold'
+              refId: 'C'
+              conditions:
+                - evaluator:
+                    params: [5.0]
+                    type: 'gt'
+                  query:
+                    params: ['B']
+                  reducer:
+                    params: []
+                    type: 'avg'

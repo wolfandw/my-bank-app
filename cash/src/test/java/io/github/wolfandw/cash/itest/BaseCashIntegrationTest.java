@@ -5,6 +5,7 @@ import io.github.wolfandw.cash.service.CashService;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
+import io.micrometer.tracing.Tracer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,8 +31,7 @@ import java.util.UUID;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "spring.cloud.compatibility-verifier.enabled=false",
-                "spring.main.allow-bean-definition-overriding=true",
-                "spring.liquibase.enabled=false"
+                "spring.main.allow-bean-definition-overriding=true"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -42,6 +42,9 @@ public abstract class BaseCashIntegrationTest extends AbstractTestcontainersTest
 
     @Autowired
     protected OutboxRepository outboxRepository;
+
+    @Autowired
+    protected Tracer tracer;
 
     @Autowired
     protected OutboxProcessorService outboxProcessorService;

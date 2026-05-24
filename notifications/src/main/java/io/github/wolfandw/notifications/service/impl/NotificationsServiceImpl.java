@@ -1,5 +1,6 @@
 package io.github.wolfandw.notifications.service.impl;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.notifications.model.Notification;
 import io.github.wolfandw.notifications.repository.NotificationsRepository;
@@ -22,14 +23,18 @@ public class NotificationsServiceImpl implements NotificationsService {
     private static final Logger LOG = LoggerFactory.getLogger(NotificationsServiceImpl.class);
 
     private final NotificationsRepository notificationsRepository;
+    private final BusinessMetricIncrementor businessMetricIncrementor;
 
     /**
      * Создает сервис.
      *
      * @param notificationsRepository репозиторий нотификаций
+     * @param businessMetricIncrementor инкрементор счетчиков
      */
-    public NotificationsServiceImpl(NotificationsRepository notificationsRepository) {
+    public NotificationsServiceImpl(NotificationsRepository notificationsRepository,
+                                    BusinessMetricIncrementor businessMetricIncrementor) {
         this.notificationsRepository = notificationsRepository;
+        this.businessMetricIncrementor = businessMetricIncrementor;
     }
 
     @KafkaListener(topics = {"${accounts.kafka.topic}",
@@ -39,23 +44,35 @@ public class NotificationsServiceImpl implements NotificationsService {
                    containerFactory = "kafkaListenerContainerFactory")
     public void listen(ConsumerRecord<UUID, Outbox> record) {
         LOG.debug("Outbox -> Notifications. Получен запрос на нотификацию, топик = " + record.topic());
-        requestNotification(record.value().getId(), record.value().getUserId(), record.value().getMessage()).subscribe();
+        requestNotification(record.value().getId(), record.value().getUserLogin(), record.value().getMessage())
+                .contextCapture().block();
     }
 
     @Override
     public Flux<Notification> processSendUnsentNotifications() {
-        return notificationsRepository.findAllBySent(false).flatMap(this::sendNotification);
+        return notificationsRepository.findAllBySent(false).flatMap(this::sendNotification).contextCapture();
     }
 
     @Override
     public Mono<Void> processDeleteSentNotifications() {
-        return notificationsRepository.deleteAllBySent(true);
+        return notificationsRepository.deleteAllBySent(true).contextCapture();
     }
 
-    private Mono<Notification> requestNotification(UUID outboxId, UUID userId, String message) {
+
+    @Override
+    public Mono<Boolean> existsUnsentNotifications() {
+        return notificationsRepository.existsBySent(false);
+    }
+
+    @Override
+    public Mono<Boolean> existsSentNotifications() {
+        return notificationsRepository.existsBySent(true);
+    }
+
+    private Mono<Notification> requestNotification(UUID outboxId, String userId, String message) {
         LOG.debug("Notifications. Обрабатывается запрос на отправку уведомления");
         Notification notification = new Notification();
-        notification.setUserId(userId);
+        notification.setUserLogin(userId);
         notification.setOutboxId(outboxId);
         notification.setMessage(message);
         return notificationsRepository.save(notification);
@@ -65,9 +82,15 @@ public class NotificationsServiceImpl implements NotificationsService {
         LOG.debug("Notifications. Отправка нотификации " + notification.getMessage());
         notification.setSent(true);
         return notificationsRepository.save(notification).map(sentNotification -> {
-            // собственно отправка уведомления
+            // собственно отправка уведомлени
+            businessMetricIncrementor.incrementNotificationSuccess(sentNotification.getUserLogin());
             LOG.info("Notifications. Уведомление отправлено: '{}'", sentNotification.getMessage());
             return sentNotification;
+        })
+        .onErrorResume(e -> {
+            businessMetricIncrementor.incrementNotificationFailure(notification.getUserLogin());
+            LOG.error("Notifications. Уведомление НЕ отправлено: '{}'", notification.getMessage(), e);
+            return Mono.empty();
         });
     }
 }

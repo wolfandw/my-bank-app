@@ -40,7 +40,7 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - ALLOW_ANONYMOUS_LOGIN=yes
     volumes:
-      - kafka_data:/bitnami/kafka
+      - /bitnami/kafka
     healthcheck:
       test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server kafka:9092 --list" ]
       interval: 10s
@@ -58,6 +58,113 @@ services:
       - KAFKA_CLUSTERS_0_NAME=${KAFKA_CLUSTERS_NAME}
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
       - DYNAMIC_CONFIG_ENABLED=true
+
+  zipkin:
+    image: openzipkin/zipkin:3.5
+    container_name: zipkin
+    depends_on:
+      - kafka
+    ports:
+      - "9411:9411"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://zipkin:9411/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  prometheus:
+    image: prom/prometheus:v3.11.3
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:13.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_ALLOW_UI_UPDATES=true
+      - PROMETHEUS_URL=http://prometheus:9090
+    depends_on:
+      - prometheus
+    links:
+      - prometheus
+    volumes:
+      - /var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    mem_limit: 1g
+
+  logstash:
+    image: logstash:8.12.0
+    container_name: logstash
+    depends_on:
+      - kafka
+      - elasticsearch
+    environment:
+      - "LS_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    ports:
+      - "5044:5044"
+
+  kibana:
+    image: kibana:8.12.0
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    mem_limit: 1g
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+  kibana-provisioning:
+    image: curlimages/curl:latest
+    container_name: kibana_provisioning
+    volumes:
+      - ./elk/kibana_import.ndjson:/tmp/kibana_import.ndjson:ro
+    command: >
+      sh -c "
+        echo 'Ожидание запуска Kibana...';
+        while [ $$(curl -s -o /dev/null -w '%{http_code}' http://kibana:5601/api/status) -ne 200 ]; do 
+          sleep 5; 
+        done;
+        echo 'Kibana готова! Начинаем импорт настроек...';
+        curl -X POST http://kibana:5601/api/saved_objects/_import -H 'kbn-xsrf: true' --form file=@/tmp/kibana_import.ndjson;
+        echo '';
+        echo 'Импорт успешно завершен!';
+      "
+    depends_on:
+      - kibana
 
   accountsdata:
     image: postgres:17-alpine
@@ -114,7 +221,3 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${NOTIFICATIONS_DB_USERNAME} -d ${NOTIFICATIONS_DB_NAME}" ]
       interval: 5s
-
-volumes:
-  kafka_data:
-    driver: local

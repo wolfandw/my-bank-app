@@ -11,7 +11,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 /**
@@ -53,7 +52,7 @@ public abstract class AbstractTestcontainersTest {
     private List<Outbox> getOutboxes(boolean sent) {
         return IntStream.range(0, 3).mapToObj(i -> {
             Outbox outbox = new Outbox();
-            outbox.setUserId(UUID.randomUUID());
+            outbox.setUserLogin("user");
             outbox.setMessage("test message " + i);
             outbox.setSent(sent);
             return outbox;

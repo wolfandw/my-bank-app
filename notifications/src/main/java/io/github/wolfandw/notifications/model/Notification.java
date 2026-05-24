@@ -18,8 +18,8 @@ public class Notification {
     @Column("outbox_id")
     private UUID outboxId;
 
-    @Column("user_id")
-    private UUID userId;
+    @Column("user_login")
+    private String userLogin;
 
     @Column("message")
     private String message;
@@ -53,17 +53,17 @@ public class Notification {
      *
      * @return идентификатор пользователя
      */
-    public UUID getUserId() {
-        return userId;
+    public String getUserLogin() {
+        return userLogin;
     }
 
     /**
      * Устанавливает идентификатор пользователя.
      *
-     * @param userId идентификатор пользователя
+     * @param userLogin идентификатор пользователя
      */
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUserLogin(String userLogin) {
+        this.userLogin = userLogin;
     }
 
     /**

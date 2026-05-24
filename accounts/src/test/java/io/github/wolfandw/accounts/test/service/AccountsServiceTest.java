@@ -10,6 +10,7 @@ import io.github.wolfandw.chassis.dto.AccountDto;
 import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.dto.UserDto;
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -56,12 +57,15 @@ public class AccountsServiceTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private WebClient webClient;
 
+    @Mock
+    private BusinessMetricIncrementor businessMetricIncrementor;
+
     @Test
     void getAccountTest() {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserLogin("user");
         outbox.setMessage("test message");
 
         UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
@@ -125,7 +129,7 @@ public class AccountsServiceTest {
                 .thenReturn(Mono.just(account));
 
         OperationResultDto operationResultDto = new OperationResultDto(outboxId, "user", true, "test message");
-        StepVerifier.create(accountService.changeCash("user", BigDecimal.TEN, CashAction.PUT)).
+        StepVerifier.create(accountService.changeCash("user", BigDecimal.TEN, CashAction.DEPOSIT)).
                 consumeNextWith(actualResult -> {
                     assertThat(actualResult.userId()).isEqualTo(operationResultDto.userId());
                     AssertionsForClassTypes.assertThat(actualResult.accepted()).isEqualTo(operationResultDto.accepted());
@@ -165,7 +169,7 @@ public class AccountsServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserLogin("user");
         outbox.setMessage("test message");
         when(outboxRepository.save(any(Outbox.class)))
                 .thenReturn(Mono.just(outbox));

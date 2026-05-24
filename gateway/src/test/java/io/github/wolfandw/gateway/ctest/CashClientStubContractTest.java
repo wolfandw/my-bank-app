@@ -83,7 +83,7 @@ public class CashClientStubContractTest {
 
         webTestClient
             .post()
-            .uri(uriBuilder -> buildUri(uriBuilder, "user", BigDecimal.TEN, CashAction.PUT))
+            .uri(uriBuilder -> buildUri(uriBuilder, "user", BigDecimal.TEN, CashAction.DEPOSIT))
             .header("Authorization", "Bearer any-token")
             .contentType(MediaType.APPLICATION_JSON)
             .exchange()

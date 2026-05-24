@@ -31,7 +31,6 @@ import java.util.UUID;
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
                 "spring.main.allow-bean-definition-overriding=true",
-                "spring.liquibase.enabled=false",
                 "spring.kafka.admin.auto-create=false",
                 "spring.kafka.listener.auto-startup=false"
         }

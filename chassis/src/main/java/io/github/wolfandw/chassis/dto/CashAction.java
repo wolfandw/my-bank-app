@@ -7,9 +7,9 @@ public enum CashAction {
     /**
      * Пополнить.
      */
-    PUT,
+    DEPOSIT,
     /**
      * Снять.
      */
-    GET
+    WITHDRAW
 }

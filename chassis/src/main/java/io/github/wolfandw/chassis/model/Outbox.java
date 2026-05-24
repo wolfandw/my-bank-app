@@ -15,8 +15,8 @@ public class Outbox {
     @Id
     private UUID id;
 
-    @Column("user_id")
-    private UUID userId;
+    @Column("user_login")
+    private String userLogin;
 
     @Column("message")
     private String message;
@@ -46,21 +46,21 @@ public class Outbox {
     }
 
     /**
-     * Возвращает идентификатор пользователя.
+     * Возвращает логин пользователя.
      *
-     * @return идентификатор пользователя
+     * @return логин пользователя
      */
-    public UUID getUserId() {
-        return userId;
+    public String getUserLogin() {
+        return userLogin;
     }
 
     /**
-     * Устанавливает идентификатор пользователя.
+     * Устанавливает логин пользователя.
      *
-     * @param userId идентификатор пользователя
+     * @param userLogin логин пользователя
      */
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUserLogin(String userLogin) {
+        this.userLogin = userLogin;
     }
 
     /**

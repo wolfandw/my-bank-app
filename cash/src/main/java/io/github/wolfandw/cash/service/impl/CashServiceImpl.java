@@ -5,6 +5,8 @@ import io.github.wolfandw.chassis.dto.CashAction;
 import io.github.wolfandw.chassis.dto.OperationResultDto;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +37,12 @@ public class CashServiceImpl implements CashService {
 
     private static final String ACCOUNTS_API_UNAVAILABLE = "Сервис счетов недоступен: %s";
 
+    private static final String TRACEPARENT = "traceparent";
+    private static final String TRACEPARENT_FORMAT = "00-%s-%s-01";
+
     private final WebClient webClient;
     private final OutboxRepository outboxRepository;
+    private final Tracer tracer;
 
     @Value("${accounts.host}")
     private String accountsHost;
@@ -49,10 +55,12 @@ public class CashServiceImpl implements CashService {
      *
      * @param webClient веб-клиент
      * @param outboxRepository репозиторий сообщений
+     * @param tracer трассировщик
      */
-    public CashServiceImpl(WebClient webClient, OutboxRepository outboxRepository) {
+    public CashServiceImpl(WebClient webClient, OutboxRepository outboxRepository, Tracer tracer) {
         this.webClient = webClient;
         this.outboxRepository = outboxRepository;
+        this.tracer = tracer;
     }
 
     @Override
@@ -60,8 +68,10 @@ public class CashServiceImpl implements CashService {
     @PreAuthorize("hasRole('USER') and hasRole('CASH_WRITE')")
     public Mono<OperationResultDto> changeCash(String login, BigDecimal value, CashAction action) {
         LOG.debug(createMessage(login, "Cash -> Accounts. Отправка запроса на изменение наличных"));
+
         return webClient.post()
                 .uri(uriBuilder -> buildUri(uriBuilder, login, value, action))
+                .header(TRACEPARENT, getTraceParent())
                 .retrieve()
                 .bodyToMono(OperationResultDto.class)
                 .flatMap(operationResultDto -> outbox(operationResultDto).thenReturn(operationResultDto))
@@ -91,12 +101,19 @@ public class CashServiceImpl implements CashService {
 
     private Outbox createOutbox(UUID userId, String login, String message) {
         Outbox outbox = new Outbox();
-        outbox.setUserId(userId);
+        outbox.setUserLogin(login);
         outbox.setMessage(createMessage(login, message));
         return outbox;
     }
 
     private String createMessage(String login, String message) {
-        return message + ": '" + login + "'";
+        return message + ", пользователь: " + login;
+    }
+
+    private String getTraceParent() {
+        Span currentSpan = tracer.currentSpan();
+        return String.format(TRACEPARENT_FORMAT,
+                currentSpan != null ? currentSpan.context().traceId() : "",
+                currentSpan != null ? currentSpan.context().spanId() : "");
     }
 }

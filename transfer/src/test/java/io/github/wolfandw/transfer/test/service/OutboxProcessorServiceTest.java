@@ -1,9 +1,11 @@
 package io.github.wolfandw.transfer.test.service;
 
+import io.github.wolfandw.chassis.metric.BusinessMetricIncrementor;
 import io.github.wolfandw.chassis.model.Outbox;
 import io.github.wolfandw.chassis.repository.OutboxRepository;
 import io.github.wolfandw.chassis.service.OutboxProcessorService;
 import io.github.wolfandw.chassis.service.impl.OutboxProcessorServiceImpl;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,13 +36,21 @@ public class OutboxProcessorServiceTest {
     private KafkaSender<UUID, Outbox> kafkaSender;
 
     @Mock
+    private Tracer tracer;
+
+    @Mock
     private SenderResult<UUID> senderResult;
+
+    @Mock
+    private BusinessMetricIncrementor businessMetricIncrementor;
 
     private OutboxProcessorService outboxProcessorService;
 
     @BeforeEach
     void setUp() {
-        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender, "${spring.kafka.topics.topic}", outboxRepository);
+        outboxProcessorService = new OutboxProcessorServiceImpl(kafkaSender,
+                "${spring.kafka.topics.topic}",
+                outboxRepository, businessMetricIncrementor);
     }
 
     @Test
@@ -55,7 +65,7 @@ public class OutboxProcessorServiceTest {
         UUID outboxId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         Outbox outbox = new Outbox();
         outbox.setId(outboxId);
-        outbox.setUserId(outboxId);
+        outbox.setUserLogin("user");
         outbox.setMessage("test message");
         when(outboxRepository.findAllBySent(any(Boolean.class)))
                 .thenReturn(Flux.just(outbox));
